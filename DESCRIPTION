@@ -1,0 +1,27 @@
+Package: systmod
+Title: System model package for sport performance modelling (One Line, Title Case)
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Frank",
+           family = "Imbach",
+           role = c("aut", "cre"),
+           email = "frankimbach@gmail.com",
+           comment = c(ORCID = "0000-0001-8175-8515"))
+Description: This package helps user to model performances from training load input, according to the known dose-response models.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports:
+    tidyverse, 
+    optimx, 
+    caret, 
+    lubridate,
+    data.table
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)
