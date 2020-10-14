@@ -1,4 +1,4 @@
-Package: systmod
+Package: sysmod
 Title: System model package for sport performance modelling (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
@@ -21,7 +21,8 @@ Imports:
     data.table
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat
 VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)

@@ -6,5 +6,6 @@
 #'   \item{training_load}{Session training load, in arbitrary units}
 #'   \item{rest}{Time rest between two consecutive training sessions, in days units}
 #'   \item{perf}{A performance, in arbitrary units}
+#'   \item{datetime}{A datetime object}
 #' }
 "example_data"

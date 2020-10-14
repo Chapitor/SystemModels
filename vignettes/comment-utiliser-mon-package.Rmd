@@ -1,0 +1,166 @@
+---
+title: "sysmod R package"
+target: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{comment-utiliser-mon-package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# ```{r setup}
+# library(systmod)
+# ```
+
+# Variable Dose-response
+
+## Data initialisation
+```{r echo=TRUE}
+example_data <- data.frame("training_load" = c(rnorm(100, mean = 1000, sd = 150),
+                                            rep(0,50)),
+                        "rest" = c(rnorm(100, mean= 2, sd=1),
+                                   rep(1,50)),
+                        "perf" = c(seq(from = 10, to = 30, length.out = 100),
+                                   rep(0,50)),
+                        "datetime" = seq(ISOdate(2020, 1, 1), by = "day", length.out = 150))
+```
+
+## Adaptations calculation
+```{r include=TRUE}
+adaptation_fn <- function(data, k1, tau1, vars){
+
+  adapt_val <- vector(length=nrow(data))
+
+  # Make the function return aberration if the time constant takes a negative or 0 value
+  if (is.na(tau1)) adapt_val <- rep(-9000, nrow(data))
+  else if(tau1 == 0) adapt_val <- rep(-9000, nrow(data))
+  else {
+    adapt_val[1] <- 0
+    for(i in 2:nrow(data)){
+      adapt_val[i] <- (k1*vars[["input"]][i-1] + adapt_val[i-1])*exp(-vars[["time"]][i]/(tau1))
+    }
+  }
+  return(adapt_val)
+}
+
+adaptations <- adaptation_fn(data = example_data, k1 = 0.5, tau1 = 40, vars = list("input" = example_data$training_load, "time" = example_data$rest))
+plot(adaptations)
+```
+
+## Fatigue calculation
+```{r include=TRUE}
+k2i_fn <- function(data, k3, tau3, vars){
+
+  k2i_val <- vector(length=nrow(data))
+
+  if (is.na(tau3)) k2i_val <- rep(-9000, nrow(data))
+  else if(tau3==0) k2i_val <- rep(-9000, nrow(data))
+  else {
+    k2i_val[1] <- 0
+    for(i in 2:nrow(data)){
+      k2i_val[i] <- (k3*vars[["input"]][i-1] + k2i_val[i-1])*exp(-vars[["time"]][i]/(tau3))
+    }
+  }
+  return(k2i_val)
+}
+```
+
+
+```{r include= TRUE}
+fatigue_fn <- function(data, k3, tau2, tau3, vars){
+  fat <- vector(length=nrow(data))
+  if (is.na(tau3) | is.na(tau2)) apt <- rep(-9000, nrow(data))
+  else if (tau3==0 | tau2==0) fatigue <- rep(-9000, nrow(data))
+  else {
+    fat[1] <- 0
+    k2i <- k2i_fn(data, k3, tau3, vars)
+    for(i in 2:nrow(data)){
+      fat[i] <- (k2i[i-1]*vars[["input"]][i-1]+fat[i-1])*exp(-vars[["time"]][i]/(tau2))
+    }
+  }
+  return(fat)
+}
+
+fatigue <- fatigue_fn(data = example_data, k3 = 0.1, tau2 = 10, tau3 = 5, vars = list("input" = example_data$training_load, "time" = example_data$rest))
+plot(fatigue)
+```
+
+
+## The model
+
+### Equation
+
+Eq. : 
+
+$$\hat{p}^n = p^{*} + k_1 \: \sum_{i=1}^{n-1} w_i \: e^{\frac{-(n-i)}{\tau1}} \: - \: \sum_{i=1}^{n-1} k^{i}_2 \: w_i \cdot e^{\frac{-(n-i)}{\tau_2}}$$ 
+```{r echo= FALSE}
+init_perf <- function(data, target){
+  return(data %>% dplyr::filter(target != 0) %>%
+           data.table::first() %>%
+           dplyr::select(target) %>%
+           as.numeric())
+}
+```
+
+```{r echo= FALSE}
+real_perf <- function(data, target){
+  res <- NULL
+  res <- data[,target]
+  res[is.na(res)] <- 0
+  return(res)
+}
+```
+
+### Parameter estimates
+```{r echo= TRUE}
+perf_model <- function(data, P0, k1, k3, tau1, tau2, tau3, vars, target){
+
+  apt <- adaptation_fn(data, k1, tau1, vars)
+  fat <- fatigue_fn(data, k3, tau3, tau2, vars)
+  res <- vector(length = length(fat))
+  P0 <- P0
+  obs <- real_perf(data, target)
+
+  for(i in 1:length(fat)){
+    ifelse(obs[i] != 0,
+           res[i] <- P0 + apt[i] - fat[i],
+           res[i] <- 0)
+  }
+  return(res)
+}
+```
+
+```{r echo = TRUE}
+RSS <- function(theta, data, target, vars){
+  y <- real_perf(data, target)
+  y_hat <- perf_model(data, P0=theta[1], k1=theta[2], k3=theta[3], tau1=theta[4], tau2=theta[5], tau3=theta[6], vars, target)
+  diff <- rep(0, length=length(y))
+
+  for(i in 1:length(y)){
+    if(y[i]!=0){
+      diff[i] <- y[i]-y_hat[i]
+    }
+  }
+  rss <- sum((diff)^2)
+  return(rss)
+}
+```
+
+### Main function
+
+Now, let's model the performance according to the variable dose-response model
+
+```{r echo = TRUE}
+validation <- list("initialWindow" = 50, "horizon" = 15, "fixedWindow" = FALSE)
+date_ID <- "datetime"
+a <- sysmod(data = data, vars = vars, target = target, specify = NULL, validation = validation, optim.method = "nlm", date_ID = date_ID)
+```
+
+
+
