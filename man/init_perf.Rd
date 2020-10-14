@@ -2,7 +2,7 @@
 % Please edit documentation in R/functions.R
 \name{init_perf}
 \alias{init_perf}
-\title{Extract the first performance}
+\title{Initial performance}
 \usage{
 init_perf(data, target)
 }
@@ -15,7 +15,7 @@ init_perf(data, target)
 a numeric value
 }
 \description{
-Extract the first performance
+This function extracts the first performance of a time ordered data frame object.
 }
 \examples{
 init_perf(data = example_data, target = "perf")

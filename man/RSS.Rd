@@ -2,16 +2,16 @@
 % Please edit documentation in R/functions.R
 \name{RSS}
 \alias{RSS}
-\title{Function used for parameter estimate, called for optimization}
+\title{Residual sum of squares calculation}
 \usage{
 RSS(data, theta, target, vars)
 }
 \arguments{
 \item{data}{is a data frame that contains training loads and performances}
 
-\item{theta}{is a vector of parameters to optimize}
+\item{theta}{is a vector of parameters P0, k1, k3, tau1, tau2, tau3.}
 
-\item{target}{is a character vector that indicates the performances column name.}
+\item{target}{is a character that indicates the performance column name.}
 
 \item{vars}{denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.}
 }
@@ -19,7 +19,7 @@ RSS(data, theta, target, vars)
 a numerical value
 }
 \description{
-Function used for parameter estimate, called for optimization
+This function calculates the residual sum of squares from observations and predicted performances.
 }
 \examples{
 RSS(data = example_data, theta= c(10, 0.1, 0.01, 40, 20, 5), target = "perf", vars = list("input" = example_data$training_load, "time" = example_data$rest))

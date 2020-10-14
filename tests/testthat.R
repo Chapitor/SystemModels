@@ -1,4 +1,4 @@
 library(testthat)
-library(systmod)
+library(sysmod)
 
-test_check("systmod")
+test_check("sysmod")

@@ -3,28 +3,23 @@ library(usethis)
 library(devtools)
 library(roxygen2)
 
-#' @title Dose-response modeling
-
-# Load dependencies
-pacman::p_load(tidyverse, optimx, caret, lubridate)
-
 # Initiate an example data frame
 load("./data/example_data.rda")
 
-# adaptation -------------------------------------------------------------
-#' To calculate adaptation from each training loads input
-#'@param data is a data frame object that contains training loads, performances and time between two consecutive sessions
-#'@param k1 denotes the gain term of adaptations induced by training
-#'@param tau1 denotes the time constant for the adaptation to decline
-#'@param vars denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.
+#' @title  Adaptations response modeling
+#' @description To model adaptation from each training session
+#' @param data is a data frame object that contains training loads, performances and time between two consecutive sessions
+#' @param k1 denotes the gain term for adaptations occurrences.
+#' @param tau1 denotes the time constant of the adaptations exponential decrease.
+#' @param vars denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.
 #'
-#'@return a vector of numerical values
+#' @return a vector of numerical values
 #'
 #' @examples
 #'adaptation_fn(data = example_data, k1 = 0.5, tau1 = 40, vars = list("input" = example_data$training_load, "time" = example_data$rest))
 #'
-#'@author Frank Imbach <frankimbach@gmail.com>
-#'@export
+#' @author Frank Imbach <frankimbach@gmail.com>
+#' @export
 adaptation_fn <- function(data, k1, tau1, vars){
 
   adapt_val <- vector(length=nrow(data))
@@ -41,12 +36,12 @@ adaptation_fn <- function(data, k1, tau1, vars){
   return(adapt_val)
 }
 
-# Fatigue -----------------------------------------------------------------
 
-#' To make the fatigue impulse response to vary over time and function to accumulation of training sessions
+#' @title Variable fatigue
+#' @description To make the fatigue impulse response varying over time and function to accumulation of training sessions
 #' @param data is a data frame object that contains training loads, performances and time between two consecutive sessions
-#' @param k3 denotes gain term of fatigue induced by training
-#' @param tau3 denotes the time constant for the fatigue remanence
+#' @param k3 denotes the gain term for fatigue occurrences.
+#' @param tau3 denotes the time constant of the fatigue remanence exponential decrease.
 #' @param vars denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.
 #'
 #' @return a vector of numerical values
@@ -54,8 +49,8 @@ adaptation_fn <- function(data, k1, tau1, vars){
 #' @examples
 #'k2i_fn(data = example_data, k3=5, tau3 = 5, vars = list("input" = example_data$training_load, "time" = example_data$rest))
 #'
-#'@author Frank Imbach <frankimbach@gmail.com>
-#'@export
+#' @author Frank Imbach <frankimbach@gmail.com>
+#' @export
 k2i_fn <- function(data, k3, tau3, vars){
 
   k2i_val <- vector(length=nrow(data))
@@ -72,11 +67,12 @@ k2i_fn <- function(data, k3, tau3, vars){
 }
 
 
-#' To calculate the variable fatigue component for each training input
+#' @title Fatigue response modeling
+#' @description To calculate the variable fatigue component for each training input
 #' @param data is a data frame object that contains training loads, performances and time between two consecutive sessions
-#' @param k3 denotes gain term of fatigue induced by training
-#' @param tau2 denotes the time constant for the fatigue remanence
-#' @param tau3 denotes the time constant for the fatigue to decline
+#' @param k3 denotes the gain term for fatigue occurrences.
+#' @param tau2 denotes the time constant of fatigue exponential decrease.
+#' @param tau3 denotes the time constant of the fatigue remanence exponential decrease.
 #' @param vars denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.
 #'
 #' @return a vector of numerical values
@@ -100,9 +96,9 @@ fatigue_fn <- function(data, k3, tau2, tau3, vars){
   return(fat)
 }
 
-# Model -------------------------------------------------------------------
 
-#' Extract the first performance
+#' @title Initial performance
+#' @description This function extracts the first performance of a time ordered data frame object.
 #' @param data is a data frame object that contains training loads, performances and time between two consecutive sessions
 #' @param target is a character that indicates the performances column name.
 #'
@@ -114,6 +110,9 @@ fatigue_fn <- function(data, k3, tau2, tau3, vars){
 #'@author Frank Imbach <frankimbach@gmail.com>
 #'@export
 init_perf <- function(data, target){
+  require(tidyverse)
+  require(data.table)
+
   return(data %>% dplyr::filter(target != 0) %>%
            data.table::first() %>%
            dplyr::select(target) %>%
@@ -121,7 +120,8 @@ init_perf <- function(data, target){
 }
 
 
-#' Extract known performances
+#' @title Extract observations
+#' @description This function extracts the known performances from a data frame object.
 #' @param data is a data frame object that contains training loads, performances and time between two consecutive sessions
 #' @param target is a character vector that indicates the performances column name.
 #'
@@ -133,22 +133,29 @@ init_perf <- function(data, target){
 #'@author Frank Imbach <frankimbach@gmail.com>
 #'@export
 real_perf <- function(data, target){
+
   res <- NULL
   res <- data[,target]
   res[is.na(res)] <- 0
   return(res)
 }
 
-#' Function to model the performance following Busso Variable dose-response model (Busso, 2003)
-#' @param data is a data frame object that contains training loads, performances and time between two consecutive sessions
-#' @param P0, @param k1, @param k2, @param tau1, @param tau2, @param tau3 denote the basic level of performance, gains terms and time constants used in the model
+#' @title Variable dose-response modeling
+#' @description The function models the performance according to Busso Variable dose-response model (Busso, 2003) and based on previously defined parameters.
+#' @param data is a data frame object that contains training loads, performances and time between two consecutive sessions.
+#' @param P0 denotes the basic level of performance.
+#' @param k1 denotes the gain term for adaptations occurrences.
+#' @param k3 denotes the gain term for fatigue occurrences.
+#' @param tau1 denotes the time constant of the adaptations exponential decrease.
+#' @param tau2 denotes the time constant of fatigue exponential decrease.
+#' @param tau3 denotes the time constant of the fatigue remanence exponential decrease.
 #' @param vars denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.
 #' @param target is a character vector that indicates the performances column name.
 #'
 #' @return a vector of numerical values
 #'
 #' @examples
-#'perf_model(data = example_data, PO = 10, k1 = 0.1, k3 = 0.01, tau1 = 40, tau2 = 20, tau3 = 5, vars = list("input" = example_data$training_load, "time" = example_data$rest),
+#'perf_model(data = example_data, P0 = 10, k1 = 0.1, k3 = 0.01, tau1 = 40, tau2 = 20, tau3 = 5, vars = list("input" = example_data$training_load, "time" = example_data$rest),
 #' target = "perf")
 #'
 #'@author Frank Imbach <frankimbach@gmail.com>
@@ -171,10 +178,11 @@ perf_model <- function(data, P0, k1, k3, tau1, tau2, tau3, vars, target){
 
 
 
-#' Function used for parameter estimate, called for optimization
+#' @title Residual sum of squares calculation
+#' @description This function calculates the residual sum of squares from observations and predicted performances.
 #' @param data is a data frame that contains training loads and performances
-#' @param theta is a vector of parameters to optimize
-#' @param target is a character vector that indicates the performances column name.
+#' @param theta is a vector of parameters P0, k1, k3, tau1, tau2, tau3.
+#' @param target is a character that indicates the performance column name.
 #' @param vars denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.
 #'
 #' @return a numerical value
@@ -199,40 +207,32 @@ RSS <- function(data, theta, target, vars){
 }
 
 
-# parameters tests --------------------------------------------------------
-
-data = example_data %>%
-  mutate(rest_days = rep(1,150))
-# y = "PERF"
-target="perf"
-# var = c("Charge", "datetime", "PERF", "rest_days")
-# vars <- list("input" = example_data$Charge, "time" = example_data$rest_days)
-vars <- list("input" = example_data$training_load, "time" = example_data$rest)
-k1 = 0.1
-k3 = 0.01
-tau1 = 40
-tau2 = 20
-tau3 = 5
-P0 = init_perf(data = data, target = target)
-theta <- c(P0, k1,k3,tau1,tau2,tau3)
-optim.method = "nlm"
-
-
-
-
-#' The main function that optimises parameters used in the Variable dose-response model (Busso, 2003), predicts values and calculates model performance.
-#' @param data is a data frame that contains training loads and performances
-#' @param vars denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.
-#' @param target is a character vector that indicates the performances column name.
-#' @param specify default is NULL. If TRUE, a list of numeric vector of initial values for P0, k1, k3, tau1, tau2, tau3 parameters, lower and upper bounds has to be specified.
-#' PO is the initial level of performance and can be extracted through the function init_perf
+#' @title Dose-response modeling
+#' @description The functions train a dose-response model with or without cross-validation.
+#' @param data is a data frame that contains training loads, performances, a date time values and the time between two consecutive sessions.
+#' @param vars denotes a list in which "input" (e.g. training loads) and "time" between two consecutive inputs are displayed.
+#' @param target is a character that indicates the performances column name.
+#' @param date_ID is a character that indicates the date time object name.
+#' @param specify default is NULL. If TRUE, a list of numeric vector of initial values for "P0", "k1", "k3", "tau1", "tau2", "tau3" parameters, "lower" and "upper" bounds has to be specified.
+#' "PO" is the initial level of performance and can be extracted through the function [init_perf].
 #' @param validation default is NULL. A list that contains the method used for validation (see details), initial window numerical value, horizon numerical values and
 #' a logical for the fixed window.
-#' @param optm.method is a character that indicates which method has to be used for parameter optimisation (see details)
+#' @param optm.method is a character that indicates which method has to be used for parameter optimisation (see details).
 #'
-#' @details validation can be used to learn model and evaluate within a cross-validation procedure. Methods available are c("TS_CV") for time-series cross-validation.
-#' For "TS-CV" method, specify numeric values for "initialWindow", "horizon" and logical term for the fixed window within a list.
-#' Each of the optimization algorithm with constraints and used by the optimx package can be specified in @param optim.method.
+#' @details validation can be used to learn model and evaluate within a cross-validation procedure. Methods available are \code{"TS-CV"} for time-series cross-validation.
+#' For \code{"TS-CV"} method, specify numeric values for \code{"initialWindow"}, \code{"horizon"} and logical term for the \code{"fixedWindow"} within a list.
+#' Each of the optimization algorithm with constraints and used by the optimx package can be specified in optim.method.
+#'
+#' @return A list describing the model output and its performances.
+#'
+#' @note Model performances (RMSE, MAE and R squared) are calculated on test data for validation = c("simple", "TS-CV").
+#'
+#' @examples
+#' sysmod(data = example_data, vars = list("input" = example_data$training_load, "time" = example_data$rest), target = "perf", specify = NULL,
+#' validation = list("initialWindow" = 50, "horizon" = 15, "fixedWindow" = FALSE), optim.method = "nlm", date_ID = "datetime")
+#'
+#'@author Frank Imbach <frankimbach@gmail.com>
+#'@export
 sysmod <-
   function(data,
            vars,
@@ -241,8 +241,13 @@ sysmod <-
            specify = NULL,
            validation = validation,
            optim.method) {
+
+    require(tidyverse)
+    require(optimx)
+    require(caret)
+
     df <-
-      data %>% slice(-c(which(data[, target] == 0)))   # A reduced data frame that allow to model with no performance days. Used for time slices.
+      data %>% dplyr::slice(-c(which(data[, target] == 0)))   # A reduced data frame that allow to model with no performance days. Used for time slices.
 
     # Initiate and optimize parameters
     if (is.null(specify) == FALSE) {
@@ -294,11 +299,11 @@ sysmod <-
 
         # split datetime dataframe
         folder_train <-
-          data %>% filter(datetime <= datetime_train_max &
+          data %>% dplyr::filter(datetime <= datetime_train_max &
                             datetime >= datetime_train_min) %>%
           mutate("base" = "train")
         folder_test <-
-          data %>% filter(datetime <= datetime_test_max &
+          data %>% dplyr::filter(datetime <= datetime_test_max &
                             datetime >= datetime_test_min)  %>%
           mutate("base" = "test")
         folder_test <- rbind(folder_train, folder_test)

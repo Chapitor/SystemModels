@@ -2,7 +2,7 @@
 % Please edit documentation in R/functions.R
 \name{real_perf}
 \alias{real_perf}
-\title{Extract known performances}
+\title{Extract observations}
 \usage{
 real_perf(data, target)
 }
@@ -15,7 +15,7 @@ real_perf(data, target)
 a vector of numerical values
 }
 \description{
-Extract known performances
+This function extracts the known performances from a data frame object.
 }
 \examples{
 real_perf(data = example_data, target = "perf")

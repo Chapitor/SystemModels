@@ -2,16 +2,16 @@
 % Please edit documentation in R/functions.R
 \name{adaptation_fn}
 \alias{adaptation_fn}
-\title{To calculate adaptation from each training loads input}
+\title{Adaptations response modeling}
 \usage{
 adaptation_fn(data, k1, tau1, vars)
 }
 \arguments{
 \item{data}{is a data frame object that contains training loads, performances and time between two consecutive sessions}
 
-\item{k1}{denotes the gain term of adaptations induced by training}
+\item{k1}{denotes the gain term for adaptations occurrences.}
 
-\item{tau1}{denotes the time constant for the adaptation to decline}
+\item{tau1}{denotes the time constant of the adaptations exponential decrease.}
 
 \item{vars}{denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.}
 }
@@ -19,7 +19,7 @@ adaptation_fn(data, k1, tau1, vars)
 a vector of numerical values
 }
 \description{
-To calculate adaptation from each training loads input
+To model adaptation from each training session
 }
 \examples{
 adaptation_fn(data = example_data, k1 = 0.5, tau1 = 40, vars = list("input" = example_data$training_load, "time" = example_data$rest))

@@ -2,14 +2,24 @@
 % Please edit documentation in R/functions.R
 \name{perf_model}
 \alias{perf_model}
-\title{Function to model the performance following Busso Variable dose-response model (Busso, 2003)}
+\title{Variable dose-response modeling}
 \usage{
 perf_model(data, P0, k1, k3, tau1, tau2, tau3, vars, target)
 }
 \arguments{
-\item{data}{is a data frame object that contains training loads, performances and time between two consecutive sessions}
+\item{data}{is a data frame object that contains training loads, performances and time between two consecutive sessions.}
 
-\item{P0, }{@param k1, @param k2, @param tau1, @param tau2, @param tau3 denote the basic level of performance, gains terms and time constants used in the model}
+\item{P0}{denotes the basic level of performance.}
+
+\item{k1}{denotes the gain term for adaptations occurrences.}
+
+\item{k3}{denotes the gain term for fatigue occurrences.}
+
+\item{tau1}{denotes the time constant of the adaptations exponential decrease.}
+
+\item{tau2}{denotes the time constant of fatigue exponential decrease.}
+
+\item{tau3}{denotes the time constant of the fatigue remanence exponential decrease.}
 
 \item{vars}{denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.}
 
@@ -19,10 +29,10 @@ perf_model(data, P0, k1, k3, tau1, tau2, tau3, vars, target)
 a vector of numerical values
 }
 \description{
-Function to model the performance following Busso Variable dose-response model (Busso, 2003)
+The function models the performance according to Busso Variable dose-response model (Busso, 2003) and based on previously defined parameters.
 }
 \examples{
-perf_model(data = example_data, PO = 10, k1 = 0.1, k3 = 0.01, tau1 = 40, tau2 = 20, tau3 = 5, vars = list("input" = example_data$training_load, "time" = example_data$rest),
+perf_model(data = example_data, P0 = 10, k1 = 0.1, k3 = 0.01, tau1 = 40, tau2 = 20, tau3 = 5, vars = list("input" = example_data$training_load, "time" = example_data$rest),
 target = "perf")
 
 }

@@ -2,18 +2,18 @@
 % Please edit documentation in R/functions.R
 \name{fatigue_fn}
 \alias{fatigue_fn}
-\title{To calculate the variable fatigue component for each training input}
+\title{Fatigue response modeling}
 \usage{
 fatigue_fn(data, k3, tau2, tau3, vars)
 }
 \arguments{
 \item{data}{is a data frame object that contains training loads, performances and time between two consecutive sessions}
 
-\item{k3}{denotes gain term of fatigue induced by training}
+\item{k3}{denotes the gain term for fatigue occurrences.}
 
-\item{tau2}{denotes the time constant for the fatigue remanence}
+\item{tau2}{denotes the time constant of fatigue exponential decrease.}
 
-\item{tau3}{denotes the time constant for the fatigue to decline}
+\item{tau3}{denotes the time constant of the fatigue remanence exponential decrease.}
 
 \item{vars}{denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.}
 }

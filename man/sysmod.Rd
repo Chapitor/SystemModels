@@ -2,7 +2,7 @@
 % Please edit documentation in R/functions.R
 \name{sysmod}
 \alias{sysmod}
-\title{The main function that optimises parameters used in the Variable dose-response model (Busso, 2003), predicts values and calculates model performance.}
+\title{Dose-response modeling}
 \usage{
 sysmod(
   data,
@@ -15,25 +15,41 @@ sysmod(
 )
 }
 \arguments{
-\item{data}{is a data frame that contains training loads and performances}
+\item{data}{is a data frame that contains training loads, performances, a date time values and the time between two consecutive sessions.}
 
-\item{vars}{denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.}
+\item{vars}{denotes a list in which "input" (e.g. training loads) and "time" between two consecutive inputs are displayed.}
 
-\item{target}{is a character vector that indicates the performances column name.}
+\item{target}{is a character that indicates the performances column name.}
 
-\item{specify}{default is NULL. If TRUE, a list of numeric vector of initial values for P0, k1, k3, tau1, tau2, tau3 parameters, lower and upper bounds has to be specified.
-PO is the initial level of performance and can be extracted through the function init_perf}
+\item{date_ID}{is a character that indicates the date time object name.}
+
+\item{specify}{default is NULL. If TRUE, a list of numeric vector of initial values for "P0", "k1", "k3", "tau1", "tau2", "tau3" parameters, "lower" and "upper" bounds has to be specified.
+"PO" is the initial level of performance and can be extracted through the function \link{init_perf}.}
 
 \item{validation}{default is NULL. A list that contains the method used for validation (see details), initial window numerical value, horizon numerical values and
 a logical for the fixed window.}
 
-\item{optm.method}{is a character that indicates which method has to be used for parameter optimisation (see details)}
+\item{optm.method}{is a character that indicates which method has to be used for parameter optimisation (see details).}
+}
+\value{
+A list describing the model output and its performances.
 }
 \description{
-The main function that optimises parameters used in the Variable dose-response model (Busso, 2003), predicts values and calculates model performance.
+The functions train a dose-response model with or without cross-validation.
 }
 \details{
-validation can be used to learn model and evaluate within a cross-validation procedure. Methods available are c("TS_CV") for time-series cross-validation.
-For "TS-CV" method, specify numeric values for "initialWindow", "horizon" and logical term for the fixed window within a list.
-Each of the optimization algorithm with constraints and used by the optimx package can be specified in @param optim.method.
+validation can be used to learn model and evaluate within a cross-validation procedure. Methods available are \code{"TS-CV"} for time-series cross-validation.
+For \code{"TS-CV"} method, specify numeric values for \code{"initialWindow"}, \code{"horizon"} and logical term for the \code{"fixedWindow"} within a list.
+Each of the optimization algorithm with constraints and used by the optimx package can be specified in optim.method.
+}
+\note{
+Model performances (RMSE, MAE and R squared) are calculated on test data for validation = c("simple", "TS-CV").
+}
+\examples{
+sysmod(data = example_data, vars = list("input" = example_data$training_load, "time" = example_data$rest), target = "perf", specify = NULL,
+validation = list("initialWindow" = 50, "horizon" = 15, "fixedWindow" = FALSE), optim.method = "nlm", date_ID = "datetime")
+
+}
+\author{
+Frank Imbach \href{mailto:frankimbach@gmail.com}{frankimbach@gmail.com}
 }

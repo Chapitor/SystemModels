@@ -14,14 +14,15 @@ knitr::opts_chunk$set(
 )
 ```
 
-# ```{r setup}
-# library(systmod)
-# ```
+```{r setup}
+library(sysmod)
+```
 
 # Variable Dose-response
 
 ## Data initialisation
 ```{r echo=TRUE}
+pacman::p_load(tidyverse, optimx, caret, lubridate)
 example_data <- data.frame("training_load" = c(rnorm(100, mean = 1000, sd = 150),
                                             rep(0,50)),
                         "rest" = c(rnorm(100, mean= 2, sd=1),
@@ -29,7 +30,21 @@ example_data <- data.frame("training_load" = c(rnorm(100, mean = 1000, sd = 150)
                         "perf" = c(seq(from = 10, to = 30, length.out = 100),
                                    rep(0,50)),
                         "datetime" = seq(ISOdate(2020, 1, 1), by = "day", length.out = 150))
+
+data = example_data %>%
+  mutate(rest_days = rep(1,150))
+target="perf"
+vars <- list("input" = example_data$training_load, "time" = example_data$rest)
+k1 = 0.1
+k3 = 0.01
+tau1 = 40
+tau2 = 20
+tau3 = 5
+P0 = init_perf(data = data, target = target)
+theta <- c(P0, k1,k3,tau1,tau2,tau3)
+optim.method = "nlm"
 ```
+
 
 ## Adaptations calculation
 ```{r include=TRUE}
@@ -159,7 +174,7 @@ Now, let's model the performance according to the variable dose-response model
 ```{r echo = TRUE}
 validation <- list("initialWindow" = 50, "horizon" = 15, "fixedWindow" = FALSE)
 date_ID <- "datetime"
-a <- sysmod(data = data, vars = vars, target = target, specify = NULL, validation = validation, optim.method = "nlm", date_ID = date_ID)
+a <- sysmod(data = example_data, vars = vars, target = target, specify = NULL, validation = validation, optim.method = "nlm", date_ID = date_ID)
 ```
 
 

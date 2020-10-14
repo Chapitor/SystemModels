@@ -2,16 +2,16 @@
 % Please edit documentation in R/functions.R
 \name{k2i_fn}
 \alias{k2i_fn}
-\title{To make the fatigue impulse response to vary over time and function to accumulation of training sessions}
+\title{Variable fatigue}
 \usage{
 k2i_fn(data, k3, tau3, vars)
 }
 \arguments{
 \item{data}{is a data frame object that contains training loads, performances and time between two consecutive sessions}
 
-\item{k3}{denotes gain term of fatigue induced by training}
+\item{k3}{denotes the gain term for fatigue occurrences.}
 
-\item{tau3}{denotes the time constant for the fatigue remanence}
+\item{tau3}{denotes the time constant of the fatigue remanence exponential decrease.}
 
 \item{vars}{denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.}
 }
@@ -19,7 +19,7 @@ k2i_fn(data, k3, tau3, vars)
 a vector of numerical values
 }
 \description{
-To make the fatigue impulse response to vary over time and function to accumulation of training sessions
+To make the fatigue impulse response varying over time and function to accumulation of training sessions
 }
 \examples{
 k2i_fn(data = example_data, k3=5, tau3 = 5, vars = list("input" = example_data$training_load, "time" = example_data$rest))
