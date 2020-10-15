@@ -1,7 +1,7 @@
-rm(list = ls())
-library(usethis)
-library(devtools)
-library(roxygen2)
+# rm(list = ls())
+# library(usethis)
+# library(devtools)
+# library(roxygen2)
 
 # Initiate an example data frame
 load("./data/example_data.rda")
