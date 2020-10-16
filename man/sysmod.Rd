@@ -15,27 +15,27 @@ sysmod(
 )
 }
 \arguments{
-\item{data}{is a data frame that contains training loads, performances, a date time values and the time between two consecutive sessions.}
+\item{data}{is a data frame object that contains at least training loads, performances and time between two consecutive sessions.}
 
-\item{vars}{denotes a list in which "input" (e.g. training loads) and "time" between two consecutive inputs are displayed.}
+\item{vars}{is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.}
 
 \item{target}{is a character that indicates the performances column name.}
 
 \item{date_ID}{is a character that indicates the date time object name.}
 
-\item{specify}{default is NULL. If TRUE, a list of numeric vector of initial values for "P0", "k1", "k3", "tau1", "tau2", "tau3" parameters, "lower" and "upper" bounds has to be specified.
-"PO" is the initial level of performance and can be extracted through the function \link{init_perf}.}
+\item{specify}{default is \code{"NULL"} If \code{"NULL"}, a list of numeric vector of initial values for \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3} parameters,
+\emph{lower} and \emph{upper} bounds has to be specified. \emph{PO} is the initial level of performance and can be extracted through the function \link{init_perf}.}
 
-\item{validation}{default is NULL. A list that contains the method used for validation (see details), initial window numerical value, horizon numerical values and
+\item{validation}{default is \code{"NULL"}. A list that contains the method used for validation (see details), initial window numerical value, horizon numerical values and
 a logical for the fixed window.}
 
-\item{optm.method}{is a character that indicates which method has to be used for parameter optimisation (see details).}
+\item{optm.method}{is a character that indicates which method has to be used for parameter optimization (see details).}
 }
 \value{
 A list describing the model output and its performances.
 }
 \description{
-The functions train a dose-response model with or without cross-validation.
+
 }
 \details{
 validation can be used to learn model and evaluate within a cross-validation procedure. Methods available are \code{"TS-CV"} for time-series cross-validation.

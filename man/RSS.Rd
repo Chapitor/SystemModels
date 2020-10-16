@@ -2,18 +2,18 @@
 % Please edit documentation in R/functions.R
 \name{RSS}
 \alias{RSS}
-\title{Residual sum of squares calculation}
+\title{Residual sum of squares.}
 \usage{
 RSS(data, theta, target, vars)
 }
 \arguments{
-\item{data}{is a data frame that contains training loads and performances}
+\item{data}{is a data frame object that contains at least training loads, performances and time between two consecutive sessions.}
 
-\item{theta}{is a vector of parameters P0, k1, k3, tau1, tau2, tau3.}
+\item{theta}{is a vector of parameters \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3}.}
 
 \item{target}{is a character that indicates the performance column name.}
 
-\item{vars}{denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.}
+\item{vars}{is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.}
 }
 \value{
 a numerical value

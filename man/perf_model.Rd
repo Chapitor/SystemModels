@@ -7,13 +7,13 @@
 perf_model(data, P0, k1, k3, tau1, tau2, tau3, vars, target)
 }
 \arguments{
-\item{data}{is a data frame object that contains training loads, performances and time between two consecutive sessions.}
+\item{data}{is a data frame object that contains at least training loads, performances and time between two consecutive sessions.}
 
 \item{P0}{denotes the basic level of performance.}
 
-\item{k1}{denotes the gain term for adaptations occurrences.}
+\item{k1}{denotes the gain term for adaptations response.}
 
-\item{k3}{denotes the gain term for fatigue occurrences.}
+\item{k3}{denotes the gain term for fatigue response.}
 
 \item{tau1}{denotes the time constant of the adaptations exponential decrease.}
 
@@ -21,7 +21,7 @@ perf_model(data, P0, k1, k3, tau1, tau2, tau3, vars, target)
 
 \item{tau3}{denotes the time constant of the fatigue remanence exponential decrease.}
 
-\item{vars}{denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.}
+\item{vars}{is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.}
 
 \item{target}{is a character vector that indicates the performances column name.}
 }
@@ -29,7 +29,7 @@ perf_model(data, P0, k1, k3, tau1, tau2, tau3, vars, target)
 a vector of numerical values
 }
 \description{
-The function models the performance according to Busso Variable dose-response model (Busso, 2003) and based on previously defined parameters.
+The function models the performance according to Busso Variable dose-response model \(Busso, 2003\) and based on previously defined parameters.
 }
 \examples{
 perf_model(data = example_data, P0 = 10, k1 = 0.1, k3 = 0.01, tau1 = 40, tau2 = 20, tau3 = 5, vars = list("input" = example_data$training_load, "time" = example_data$rest),

@@ -7,7 +7,7 @@
 real_perf(data, target)
 }
 \arguments{
-\item{data}{is a data frame object that contains training loads, performances and time between two consecutive sessions}
+\item{data}{is a data frame object that contains at least training loads, performances and time between two consecutive sessions.}
 
 \item{target}{is a character vector that indicates the performances column name.}
 }
@@ -15,7 +15,7 @@ real_perf(data, target)
 a vector of numerical values
 }
 \description{
-This function extracts the known performances from a data frame object.
+This function extracts known performances from a data frame object.
 }
 \examples{
 real_perf(data = example_data, target = "perf")

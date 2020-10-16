@@ -7,12 +7,12 @@
 init_perf(data, target)
 }
 \arguments{
-\item{data}{is a data frame object that contains training loads, performances and time between two consecutive sessions}
+\item{data}{is a data frame object that contains at least training loads, performances and time between two consecutive sessions.}
 
 \item{target}{is a character that indicates the performances column name.}
 }
 \value{
-a numeric value
+a numerical value
 }
 \description{
 This function extracts the first performance of a time ordered data frame object.

@@ -7,19 +7,19 @@
 adaptation_fn(data, k1, tau1, vars)
 }
 \arguments{
-\item{data}{is a data frame object that contains training loads, performances and time between two consecutive sessions}
+\item{data}{is a data frame object that contains at least training loads, performances and time between two consecutive sessions.}
 
-\item{k1}{denotes the gain term for adaptations occurrences.}
+\item{k1}{denotes the gain term for adaptation occurrences.}
 
 \item{tau1}{denotes the time constant of the adaptations exponential decrease.}
 
-\item{vars}{denotes a list that contains input and time numeric vectors. Input refers to session training loads and time refers to the time between two consecutive inputs.}
+\item{vars}{is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.}
 }
 \value{
 a vector of numerical values
 }
 \description{
-To model adaptation from each training session
+To model adaptation induced by each training session.
 }
 \examples{
 adaptation_fn(data = example_data, k1 = 0.5, tau1 = 40, vars = list("input" = example_data$training_load, "time" = example_data$rest))
