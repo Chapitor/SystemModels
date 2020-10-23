@@ -1,14 +1,26 @@
+
+# data --------------------------------------------------------------------
+
+example_data <- data.frame("training_load" = c(rnorm(100, mean = 1000, sd = 150),
+                                               rep(0,50)),
+                           "rest" = c(rnorm(100, mean= 2, sd=1),
+                                      rep(1,50)),
+                           "perf" = c(seq(from = 10, to = 30, length.out = 100),
+                                      rep(0,50)),
+                           "datetime" = seq(ISOdate(2020, 1, 1), by = "day", length.out = 150))
+
+
 #' @title Dose-response modeling
 #' @description This function trains a dose-response model with or without validation procedure. The model is defined as following :
 #' @param data is a data frame object that contains at least training loads, performances and time between two consecutive sessions.
 #' @param vars is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
 #' @param target is a character that indicates the performances column name.
 #' @param date_ID is a character that indicates the date time object name.
-#' @param specify default is \code{"NULL"}. Alternatively, a list of numeric vector of initial values for \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3} parameters,
-#'  \emph{lower} and \emph{upper} bounds has to be specified. \emph{PO} is the initial level of performance and can be extracted through the function [init_perf].
+#' @param specify default is \code{"NULL"}. Alternatively, a list of  \code{"theta_init} numeric vector that contains initial values for \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3} parameters,
+#'  a numeric vector for lower bounds named \emph{lower}, a numeric vector for upper bounds named \emph{upper} and a character defining the method for optimisation \code{optim.method} has to be specified.
+#'   \emph{PO} is the initial level of performance and can be extracted through the function [init_perf].
 #' @param validation.method default is \code{"none"}. Alternatively, data splitting or cross-validation can be specified (see details).
 #' @param specs default is \code{"NULL"}. If a validation method is specified, a list that contains splitting arguments has to be specified (see details)
-#' @param optm.method is a character that indicates which method has to be used for parameter optimization (see details).
 #'
 #' @details \emph{validation.method} can be used to learn model and evaluate within a cross-validation procedure. Methods available are \code{"none"}, \code{"simple"} and \code{"TS-CV"}
 #'  for no validation, a simple data split into training / testing sets and time-series cross-validation respectively.
@@ -35,7 +47,6 @@ sysmod <-
            specify = NULL,
            validation.method = "none",
            specs = NULL) {
-
     require(tidyverse)
     require(optimx)
     require(caret)
@@ -45,8 +56,7 @@ sysmod <-
 
     # Initiate and optimize parameters
     if (is.null(specify) == FALSE) {
-      P0_init <- init_perf(data, target)
-      theta_init <- specify[["theta"]]
+      theta_init <- specify[["theta_init"]]
 
 
     } else {
@@ -72,11 +82,10 @@ sysmod <-
 
 
 
-# No validation -----------------------------------------------------------
+    # No validation -----------------------------------------------------------
 
 
     if (validation.method == "none") {
-
       # Optimization is initial values and boundaries are provided
       if (is.null(specify) == FALSE) {
         res_optim <-
@@ -98,7 +107,7 @@ sysmod <-
             data = data,
             target = target,
             vars = vars,
-            method = optim.method,
+            method = "nlm",
             lower = c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1),
             upper = c(P0_init, 1, 1, 80, 40, 10)
           )
@@ -120,21 +129,21 @@ sysmod <-
         tau3 = tau3
       )
 
-      df$perf <- real_perf(data = data, target = target)
-      df$adaptation <-
+      data$perf <- real_perf(data = data, target = target)
+      data$adaptation <-
         adaptation_fn(
           data = data,
           k1 = k1,
           tau1 = tau1,
           vars = vars
         )
-      df$k2i <- k2i_fn(
+      data$k2i <- k2i_fn(
         data = data,
         k3 = k3,
         tau3 = tau3,
         vars = vars
       )
-      df$fatigue <-
+      data$fatigue <-
         fatigue_fn(
           data = data,
           k3 = k3,
@@ -142,7 +151,7 @@ sysmod <-
           tau2 = tau2,
           vars = vars
         )
-      df$predicted <-
+      data$predicted <-
         perf_model(
           data = data,
           P0 = P0,
@@ -156,16 +165,18 @@ sysmod <-
         )
 
       # Compute RMSE, MAE and Rsquared on test data
-      rmse_vec <- caret::RMSE(pred = df[, "predicted"],
-                              obs = df[, "perf"])
-      MAE_vec <- caret::MAE(pred = df[, "predicted"],
-                            obs = df[, "perf"])
-      Rsq_vec <- caret::R2(pred = df[, "predicted"],
-                           obs = df[, "perf"])
+      rmse_vec <- caret::RMSE(pred = data[which(data[,target] != 0), "predicted"],
+                              obs = data[which(data[,target] != 0), "perf"])
+      MAE_vec <- caret::MAE(pred = data[which(data[,target] != 0), "predicted"],
+                            obs = data[which(data[,target] != 0), "perf"])
+      Rsq_vec <- caret::R2(pred = data[which(data[,target] != 0), "predicted"],
+                           obs = data[which(data[,target] != 0), "perf"])
+
+
 
       return(
         list(
-          "data" = df,
+          "data" = data,
           "theta" = theta,
           "rmse_vec" = rmse_vec,
           "MAE_vec" = MAE_vec,
@@ -175,19 +186,20 @@ sysmod <-
     } # Close "No validation"
 
 
-     # Simple data split for validation ----------------------------------
+    # Simple data split for validation ----------------------------------
 
 
-      if (validation.method == "simple") {
-
-      time_slice <- caret::createTimeSlices(y = df[, target],
-                                           initialWindow = specs[["initialWindow"]] * nrow(df),
-                                           horizon = specs[["horizon"]] * nrow(df),
-                                           fixedWindow = specs[["fixedWindow"]])
+    if (validation.method == "simple") {
+      time_slice <- caret::createTimeSlices(
+        y = df[, target],
+        initialWindow = specs[["initialWindow"]] * nrow(df),
+        horizon = specs[["horizon"]] * nrow(df),
+        fixedWindow = specs[["fixedWindow"]]
+      )
 
       # split performance dataframe
-      folder_train <- df[unlist(time_slice$train),]
-      folder_test <- df[unlist(time_slice$test),]
+      folder_train <- df[unlist(time_slice$train), ]
+      folder_test <- df[unlist(time_slice$test), ]
 
       # retrieve date information of split
       datetime_train_min <- min(folder_train[, date_ID])
@@ -229,7 +241,7 @@ sysmod <-
             data = folder_train,
             target = target,
             vars = vars,
-            method = optim.method,
+            method = "nlm",
             lower = c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1),
             upper = c(P0_init, 1, 1, 80, 40, 10)
           )
@@ -310,7 +322,7 @@ sysmod <-
 
 
 
-# TS-CV -------------------------------------------------------------------
+    # TS-CV -------------------------------------------------------------------
 
 
     # Times Series Cross Validation
@@ -326,8 +338,8 @@ sysmod <-
         # Compute the model for each folder. The last folder will return the full model
 
         # split performance dataframe
-        folder_train <- df[unlist(time_slice$train[k]),]
-        folder_test <- df[unlist(time_slice$test[k]),]
+        folder_train <- df[unlist(time_slice$train[k]), ]
+        folder_test <- df[unlist(time_slice$test[k]), ]
 
         # retrieve date information of split
         datetime_train_min <- min(folder_train[, date_ID])
@@ -369,7 +381,7 @@ sysmod <-
               data = folder_train,
               target = target,
               vars = vars,
-              method = optim.method,
+              method = "nlm",
               lower = c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1),
               upper = c(P0_init, 1, 1, 80, 40, 10)
             )
@@ -494,9 +506,28 @@ a <- sysmod(data = example_data,
             specify = specify, validation.method = validation.method, specs = specs)
 
 
+# TEST simple CV ----------------------------------------------------------
+specs <- list("initialWindow" = 0.8, "horizon" = 0.2, "fixedWindow" = FALSE)
+validation.method = "simple"
+
+a <- sysmod(data = example_data,
+            vars = vars,
+            target = target,
+            date_ID = date_ID,
+            specify = specify, validation.method = validation.method, specs = specs)
 
 
+# TEST no CV --------------------------------------------------------------
+specs <- NULL
+validation.method = "none"
 
+a <- sysmod(data = example_data,
+            vars = vars,
+            target = target,
+            date_ID = date_ID,
+            specify = specify,
+            validation.method = validation.method,
+            specs = specs)
 
 
 
