@@ -4,7 +4,7 @@
 # library(roxygen2)
 
 # Initiate an example data frame
-load("./data/example_data.rda")
+# load("./data/example_data.rda")
 
 #' @title  Adaptations response modeling
 #' @description To model adaptation induced by each training session.
@@ -213,14 +213,17 @@ RSS <- function(data, theta, target, vars){
 #' @param vars is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
 #' @param target is a character that indicates the performances column name.
 #' @param date_ID is a character that indicates the date time object name.
-#' @param specify default is \code{"NULL"} If \code{"NULL"}, a list of numeric vector of initial values for \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3} parameters,
-#'  \emph{lower} and \emph{upper} bounds has to be specified. \emph{PO} is the initial level of performance and can be extracted through the function [init_perf].
-#' @param validation default is \code{"NULL"}. A list that contains the method used for validation (see details), initial window numerical value, horizon numerical values and
-#' a logical for the fixed window.
-#' @param optm.method is a character that indicates which method has to be used for parameter optimization (see details).
+#' @param specify default is \code{"NULL"}. Alternatively, a list of \code{"theta_init"} numeric vector that contains initial values for \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3} parameters,
+#'  a numeric vector for lower bounds named \emph{lower}, a numeric vector for upper bounds named \emph{upper} and a character defining the method for optimisation \code{optim.method} has to be specified.
+#'   \emph{PO} is the initial level of performance and can be extracted through the function [init_perf].
+#' @param validation.method default is \code{"none"}. Alternatively, data splitting or cross-validation can be specified (see details).
+#' @param specs default is \code{"NULL"}. If a validation method is specified, a list that contains splitting arguments has to be specified (see details)
 #'
-#' @details validation can be used to learn model and evaluate within a cross-validation procedure. Methods available are \code{"TS-CV"} for time-series cross-validation.
-#' For \code{"TS-CV"} method, specify numeric values for \code{"initialWindow"}, \code{"horizon"} and logical term for the \code{"fixedWindow"} within a list.
+#' @details \emph{validation.method} can be used to learn model and evaluate within a cross-validation procedure. Methods available are \code{"none"}, \code{"simple"} and \code{"TS-CV"}
+#'  for no validation, a simple data split into training / testing sets and time-series cross-validation respectively.
+#'  For the \code{"simple"} method, specify decimals as the proportion of the data to be used for model training in \code{"initialWindow"}, the proportion of data used for model evaluation in
+#'  \code{"horizon"} and logical term for the \code{"fixedWindow"} within a list.
+#'  For the \code{"TS-CV"} method, specify numeric values for \code{"initialWindow"}, \code{"horizon"} and logical term for the \code{"fixedWindow"} within a list.
 #' Each of the optimization algorithm with constraints and used by the optimx package can be specified in optim.method.
 #'
 #' @return A list describing the model output and its performances.
@@ -228,8 +231,38 @@ RSS <- function(data, theta, target, vars){
 #' @note Model performances (RMSE, MAE and R squared) are calculated on test data for validation = c("simple", "TS-CV").
 #'
 #' @examples
-#' sysmod(data = example_data, vars = list("input" = example_data$training_load, "time" = example_data$rest), target = "perf", specify = NULL,
-#' validation = list("initialWindow" = 50, "horizon" = 15, "fixedWindow" = FALSE), optim.method = "nlm", date_ID = "datetime")
+#' DO NOT RUN : no validation, default optimisation specs.
+#' model_results <- sysmod(data = example_data,
+#'       vars = list("input" = example_data$training_load, "time" = example_data$rest),
+#'       target = "perf", date_ID = "datetime",
+#'       validation.method = "none")
+#'
+#' P0_init = init_perf(data = example_data, target = "perf")
+#' theta_init <- c(P0_init = P0_init, k1_init = 0.5, k3_init = 0.1, tau1_init = 40, tau2_init = 20, tau3_init = 5)
+#' lower <- c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1)
+#' upper <- c(P0_init, 1, 1, 80, 40, 10)
+#' DO NOT RUN : no validation, custom optimisation.
+#'model_results <- sysmod(data = example_data,
+#'      vars = list("input" = example_data$training_load, "time" = example_data$rest),
+#'      target = "perf", date_ID = "datetime",
+#'      specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),
+#'      validation.method = "none")
+#'
+#' DO NOT RUN : simple split example, custom optimisation.
+#'model_results <- sysmod(data = example_data,
+#'      vars = list("input" = example_data$training_load, "time" = example_data$rest),
+#'      target = "perf", date_ID = "datetime",
+#'      specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),
+#'      validation.method = "simple",
+#'      specs = list("initialWindow" = 0.8, "horizon" = 0.2, "fixedWindow" = FALSE))
+#'
+#' DO NOT RUN : TS-CV example, custom optimisation.
+#'model_results <- sysmod(data = example_data,
+#'      vars = list("input" = example_data$training_load, "time" = example_data$rest),
+#'      target = "perf", date_ID = "datetime",
+#'      specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),
+#'      validation.method = "TS-CV",
+#'      specs = list("initialWindow" = 50, "horizon" = 15, "fixedWindow" = FALSE))
 #'
 #'@author Frank Imbach <frankimbach@gmail.com>
 #'@export
@@ -239,20 +272,18 @@ sysmod <-
            target,
            date_ID,
            specify = NULL,
-           validation = validation,
-           optim.method) {
-
+           validation.method = "none",
+           specs = NULL) {
     require(tidyverse)
     require(optimx)
     require(caret)
 
     df <-
-      data %>% dplyr::slice(-c(which(data[, target] == 0)))   # A reduced data frame that allow to model with no performance days. Used for time slices.
+      data %>% dplyr::slice(-c(which(data[, target] == 0)))   # A reduced data frame that allow to model with no performance days. Used for datetime indexed data frames in Time series CV
 
     # Initiate and optimize parameters
     if (is.null(specify) == FALSE) {
-      P0_init <- init_perf(data, target)
-      theta_init <- specify[["theta"]]
+      theta_init <- specify[["theta_init"]]
 
 
     } else {
@@ -274,21 +305,268 @@ sysmod <-
     MAE_vec <- c()
     Rsq_vec <- c()
 
-    # Create timeslices
-    if (is.null(validation) == FALSE) {
+
+
+
+
+    # No validation -----------------------------------------------------------
+
+
+    if (validation.method == "none") {
+      # Optimization is initial values and boundaries are provided
+      if (is.null(specify) == FALSE) {
+        res_optim <-
+          optimx::optimx(
+            par = specify[["theta_init"]],
+            fn = RSS,
+            data = data,
+            target = target,
+            vars = vars,
+            method = specify[["optim.method"]],
+            lower = specify[["lower"]],
+            upper = specify[["upper"]]
+          )
+      } else {
+        res_optim <-
+          optimx::optimx(
+            par = theta_init,
+            fn = RSS,
+            data = data,
+            target = target,
+            vars = vars,
+            method = "nlm",
+            lower = c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1),
+            upper = c(P0_init, 1, 1, 80, 40, 10)
+          )
+      }
+
+      P0 <- res_optim$P0_init
+      k1 <- res_optim$k1_init
+      k3 <- res_optim$k3_init
+      tau1 <- res_optim$tau1_init
+      tau2 <- res_optim$tau2_init
+      tau3 <- res_optim$tau3_init
+
+      theta <- c(
+        P0 = P0,
+        k1 = k1,
+        k3 = k3,
+        tau1 = tau1,
+        tau2 = tau2,
+        tau3 = tau3
+      )
+
+      data$perf <- real_perf(data = data, target = target)
+      data$adaptation <-
+        adaptation_fn(
+          data = data,
+          k1 = k1,
+          tau1 = tau1,
+          vars = vars
+        )
+      data$k2i <- k2i_fn(
+        data = data,
+        k3 = k3,
+        tau3 = tau3,
+        vars = vars
+      )
+      data$fatigue <-
+        fatigue_fn(
+          data = data,
+          k3 = k3,
+          tau3 = tau3,
+          tau2 = tau2,
+          vars = vars
+        )
+      data$predicted <-
+        perf_model(
+          data = data,
+          P0 = P0,
+          k1 = k1,
+          k3 = k3,
+          tau1 = tau1,
+          tau2 = tau2,
+          tau3 = tau3,
+          vars = vars,
+          target = target
+        )
+
+      # Compute RMSE, MAE and Rsquared on test data
+      rmse_vec <- caret::RMSE(pred = data[which(data[,target] != 0), "predicted"],
+                              obs = data[which(data[,target] != 0), "perf"])
+      MAE_vec <- caret::MAE(pred = data[which(data[,target] != 0), "predicted"],
+                            obs = data[which(data[,target] != 0), "perf"])
+      Rsq_vec <- caret::R2(pred = data[which(data[,target] != 0), "predicted"],
+                           obs = data[which(data[,target] != 0), "perf"])
+
+
+
+      return(
+        list(
+          "data" = data,
+          "theta" = theta,
+          "rmse_vec" = rmse_vec,
+          "MAE_vec" = MAE_vec,
+          "Rsq_vec" = Rsq_vec
+        )
+      )
+    } # Close "No validation"
+
+
+    # Simple data split for validation ----------------------------------
+
+
+    if (validation.method == "simple") {
+      time_slice <- caret::createTimeSlices(
+        y = df[, target],
+        initialWindow = specs[["initialWindow"]] * nrow(df),
+        horizon = specs[["horizon"]] * nrow(df),
+        fixedWindow = specs[["fixedWindow"]]
+      )
+
+      # split performance dataframe
+      folder_train <- df[unlist(time_slice$train), ]
+      folder_test <- df[unlist(time_slice$test), ]
+
+      # retrieve date information of split
+      datetime_train_min <- min(folder_train[, date_ID])
+      datetime_train_max <- max(folder_train[, date_ID])
+
+      datetime_test_min <- min(folder_test[, date_ID])
+      datetime_test_max <- max(folder_test[, date_ID])
+
+      # split datetime data frame
+      folder_train <-
+        data %>% dplyr::filter(datetime <= datetime_train_max &
+                                 datetime >= datetime_train_min) %>%
+        mutate("base" = "train")
+      folder_test <-
+        data %>% dplyr::filter(datetime <= datetime_test_max &
+                                 datetime >= datetime_test_min)  %>%
+        mutate("base" = "test")
+      folder_test <- rbind(folder_train, folder_test)
+
+
+      # Model training
+      if (is.null(specify) == FALSE) {
+        res_optim <-
+          optimx::optimx(
+            par = specify[["theta_init"]],
+            fn = RSS,
+            data = folder_train,
+            target = target,
+            vars = vars,
+            method = specify[["optim.method"]],
+            lower = specify[["lower"]],
+            upper = specify[["upper"]]
+          )
+      } else {
+        res_optim <-
+          optimx::optimx(
+            par = theta_init,
+            fn = RSS,
+            data = folder_train,
+            target = target,
+            vars = vars,
+            method = "nlm",
+            lower = c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1),
+            upper = c(P0_init, 1, 1, 80, 40, 10)
+          )
+      }
+
+      P0 <- res_optim$P0_init
+      k1 <- res_optim$k1_init
+      k3 <- res_optim$k3_init
+      tau1 <- res_optim$tau1_init
+      tau2 <- res_optim$tau2_init
+      tau3 <- res_optim$tau3_init
+
+      theta <-
+        data.frame(
+          P0 = P0,
+          k1 = k1,
+          k3 = k3,
+          tau1 = tau1,
+          tau2 = tau2,
+          tau3 = tau3
+        )
+
+      folder_test$perf <-
+        real_perf(data = folder_test, target = target)
+      folder_test$adaptation <-
+        adaptation_fn(
+          data = folder_test,
+          k1 = k1,
+          tau1 = tau1,
+          vars = vars
+        )
+      folder_test$k2i <-
+        k2i_fn(
+          data = folder_test,
+          k3 = k3,
+          tau3 = tau3,
+          vars = vars
+        )
+      folder_test$fatigue <-
+        fatigue_fn(
+          data = folder_test,
+          k3 = k3,
+          tau3 = tau3,
+          tau2 = tau2,
+          vars = vars
+        )
+      folder_test$predicted <-
+        perf_model(
+          data = folder_test,
+          P0 = P0,
+          k1 = k1,
+          k3 = k3,
+          tau1 = tau1,
+          tau2 = tau2,
+          tau3 = tau3,
+          vars = vars,
+          target = target
+        )
+
+      # Compute RMSE, MAE and Rsquared on test data
+      rmse_vec <- caret::RMSE(pred = folder_test[, "predicted"],
+                              obs = folder_test[, "perf"])
+      MAE_vec <- caret::MAE(pred = folder_test[, "predicted"],
+                            obs = folder_test[, "perf"])
+      Rsq_vec <- caret::R2(pred = folder_test[, "predicted"],
+                           obs = folder_test[, "perf"])
+
+      return(
+        list(
+          "data" = folder_test,
+          "theta" = theta,
+          "rmse_vec" = rmse_vec,
+          "MAE_vec" = MAE_vec,
+          "Rsq_vec" = Rsq_vec
+        )
+      )
+    } # Close "simple"
+
+
+
+    # TS-CV -------------------------------------------------------------------
+
+
+    # Times Series Cross Validation
+    if (validation.method == "TS-CV") {
       time_slice <- caret::createTimeSlices(
         df[, target],
-        initialWindow = validation[["initialWindow"]],
-        horizon = validation[["horizon"]],
-        fixedWindow = validation[["fixedWindow"]]
+        initialWindow = specs[["initialWindow"]],
+        horizon = specs[["horizon"]],
+        fixedWindow = specs[["fixedWindow"]]
       )
 
       for (k in 1:length(time_slice$train)) {
         # Compute the model for each folder. The last folder will return the full model
 
         # split performance dataframe
-        folder_train <- data[unlist(time_slice$train[k]),]
-        folder_test <- data[unlist(time_slice$test[k]),]
+        folder_train <- df[unlist(time_slice$train[k]), ]
+        folder_test <- df[unlist(time_slice$test[k]), ]
 
         # retrieve date information of split
         datetime_train_min <- min(folder_train[, date_ID])
@@ -300,11 +578,11 @@ sysmod <-
         # split datetime dataframe
         folder_train <-
           data %>% dplyr::filter(datetime <= datetime_train_max &
-                            datetime >= datetime_train_min) %>%
+                                   datetime >= datetime_train_min) %>%
           mutate("base" = "train")
         folder_test <-
           data %>% dplyr::filter(datetime <= datetime_test_max &
-                            datetime >= datetime_test_min)  %>%
+                                   datetime >= datetime_test_min)  %>%
           mutate("base" = "test")
         folder_test <- rbind(folder_train, folder_test)
 
@@ -313,10 +591,12 @@ sysmod <-
         if (is.null(specify) == FALSE) {
           res_optim <-
             optimx::optimx(
-              par = theta_init,
+              par = specify[["theta_init"]],
               fn = RSS,
               data = folder_train,
-              method = optim.method,
+              target = target,
+              vars = vars,
+              method = specify[["optim.method"]],
               lower = specify[["lower"]],
               upper = specify[["upper"]]
             )
@@ -328,18 +608,18 @@ sysmod <-
               data = folder_train,
               target = target,
               vars = vars,
-              method = optim.method,
+              method = "nlm",
               lower = c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1),
               upper = c(P0_init, 1, 1, 80, 40, 10)
             )
         }
 
-        P0 <- res_optim$p1
-        k1 <- res_optim$p2
-        k3 <- res_optim$p3
-        tau1 <- res_optim$p4
-        tau2 <- res_optim$p5
-        tau3 <- res_optim$p6
+        P0 <- res_optim$P0_init
+        k1 <- res_optim$k1_init
+        k3 <- res_optim$k3_init
+        tau1 <- res_optim$tau1_init
+        tau2 <- res_optim$tau2_init
+        tau3 <- res_optim$tau3_init
 
         theta <-
           data.frame(
@@ -407,7 +687,7 @@ sysmod <-
                       obs = folder_test[which(folder_test[, "base"] == "test"), "perf"]))
 
 
-      } # Close kfold
+      } # Close TS-CV
       return(
         list(
           "dfs" = dfs,
@@ -417,152 +697,6 @@ sysmod <-
           "Rsq_vec" = Rsq_vec
         )
       )
-    } else {
-      # Close validation
-
-      # Model training
-      if (is.null(specify) == FALSE) {
-        res_optim <-
-          optimx::optimx(
-            par = theta_init,
-            fn = RSS,
-            data = df,
-            method = optim.method,
-            lower = specify[["lower"]],
-            upper = specify[["upper"]]
-          )
-      } else {
-        res_optim <-
-          optimx::optimx(
-            par = theta_init,
-            fn = RSS,
-            data = df,
-            target = target,
-            vars = vars,
-            method = optim.method,
-            lower = c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1),
-            upper = c(P0_init, 1, 1, 80, 40, 10)
-          )
-      }
-
-      P0 <- res_optim$p1
-      k1 <- res_optim$p2
-      k3 <- res_optim$p3
-      tau1 <- res_optim$p4
-      tau2 <- res_optim$p5
-      tau3 <- res_optim$p6
-
-      theta <- c(
-        P0 = P0,
-        k1 = k1,
-        k3 = k3,
-        tau1 = tau1,
-        tau2 = tau2,
-        tau3 = tau3
-      )
-
-      df$perf <- real_perf(data = df, target = target)
-      df$adaptation <-
-        adaptation_fn(
-          data = df,
-          k1 = k1,
-          tau1 = tau1,
-          vars = vars
-        )
-      df$k2i <- k2i_fn(
-        data = df,
-        k3 = k3,
-        tau3 = tau3,
-        vars = vars
-      )
-      df$fatigue <-
-        fatigue_fn(
-          data = df,
-          k3 = k3,
-          tau3 = tau3,
-          tau2 = tau2,
-          vars = vars
-        )
-      df$predicted <-
-        perf_model(
-          data = df,
-          P0 = P0,
-          k1 = k1,
-          k3 = k3,
-          tau1 = tau1,
-          tau2 = tau2,
-          tau3 = tau3,
-          vars = vars,
-          target = target
-        )
-
-      # Compute RMSE, MAE and Rsquared on test data
-      rmse_vec <- caret::RMSE(pred = df[, "predicted"],
-                              obs = df[, "perf"])
-      MAE_vec <- caret::MAE(pred = df[, "predicted"],
-                            obs = df[, "perf"])
-      Rsq_vec <- caret::R2(pred = df[, "predicted"],
-                           obs = df[, "perf"])
-
-      return(
-        list(
-          "data" = df,
-          "theta" = theta,
-          "rmse_vec" = rmse_vec,
-          "MAE_vec" = MAE_vec,
-          "Rsq_vec" = Rsq_vec
-        )
-      )
     }
   }
-
-
-
-# in dev ------------------------------------------------------------------
-
-# tn_fn <- function(model) {    # time to recover performance
-#   k1 <- unlist(model[["theta"]]["k1"])
-#   k3 <- unlist(model[["theta"]]["k3"])
-#   tau1 <- unlist(model[["theta"]]["tau1"])
-#   tau2 <- unlist(model[["theta"]]["tau2"])
-#   tau3 <- unlist(model[["theta"]]["tau3"])
-#   res <- c()
-#
-#   for (k in 1:max(model[["dfs"]]["folder"])) {
-#     k2i_dat <- mdl[["dfs"]] %>%
-#       dplyr::filter(folder == k) %>%
-#       summarise(k2i_mean = mean(k2i))
-#
-#     res <- c(res, abs(((tau1[k] * tau2[k])/(tau1[k] - tau2[k])) * log(k2i_dat / k1[k])))
-#   }
-#
-#   return(res)
-# }
-#
-#
-# tg_fn <- function(mdl) {    # <Time of peak performance after training completion
-#
-#   k1 <- mdl$theta[1]
-#   k3 <- mdl$theta[2]
-#   to1 <- mdl$theta[3]
-#   to2 <- mdl$theta[4]
-#   to3 <- mdl$theta[5]
-#
-#   res <- ((to1*to2)/(to1-to2)) * log((to1*k3)/to2*k1) # it should be log((to1*k2)/to2*k1)
-# }
-#
-#
-#
-# ODT_busso <- function(mdl) {
-#
-#   k1 <- mdl$theta[1]
-#   k3 <- mdl$theta[2]
-#   to1 <- mdl$theta[3]
-#   to2 <- mdl$theta[4]
-#   to3 <- mdl$theta[5]
-#
-#   res <- (k1* exp(-(1/to1)) * (1 - exp(- (1/to2))) * (1 - exp(-(1/to3)))) / (2*k3 * (1- exp(-(1/to1))) * exp(-(1/to2)))
-#
-#   return(res)
-# }
 

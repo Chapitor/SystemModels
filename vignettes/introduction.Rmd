@@ -22,15 +22,18 @@ pacman::p_load(tidyverse, optimx, caret, lubridate)
 # Variable Dose-response
 
 ## Data initialisation
-```{r echo=TRUE}
+```{r echo=FALSE}
 example_data <- data.frame("training_load" = c(rnorm(100, mean = 1000, sd = 150),
-                                            rep(0,50)),
-                        "rest" = c(rnorm(100, mean= 2, sd=1),
-                                   rep(1,50)),
-                        "perf" = c(seq(from = 10, to = 30, length.out = 100),
-                                   rep(0,50)),
-                        "datetime" = seq(ISOdate(2020, 1, 1), by = "day", length.out = 150))
+                                               rep(0,50)),
+                           "rest" = c(rnorm(100, mean= 2, sd=1),
+                                      rep(1,50)),
+                           "perf" = c(seq(from = 10, to = 30, length.out = 100),
+                                      rep(0,50)),
+                           "datetime" = seq(ISOdate(2020, 1, 1), by = "day", length.out = 150))
+```
 
+
+```{r echo=TRUE}
 data <- example_data
 target <- "perf"
 vars <- list("input" = example_data$training_load, "time" = example_data$rest)
@@ -39,9 +42,6 @@ k3 = 0.01
 tau1 = 40
 tau2 = 20
 tau3 = 5
-P0 <- init_perf(data = data, target = target)
-theta <- c(P0, k1,k3,tau1,tau2,tau3)
-optim.method = "nlm"
 ```
 
 
@@ -132,6 +132,7 @@ real_perf <- function(data, target){
 ```
 
 ### Parameter estimates
+
 ```{r echo= TRUE}
 perf_model <- function(data, P0, k1, k3, tau1, tau2, tau3, vars, target){
 
@@ -168,13 +169,53 @@ RSS <- function(theta, data, target, vars){
 
 ### Main function
 
-Now, let's model the performance according to the variable dose-response model
+The associated functions being presented, we can model the performance according to the variable dose-response model.
 
+ + Performance modelling within a simple 80 / 20 data split for model validation
+ 
 ```{r echo = TRUE}
-validation <- list("initialWindow" = 50, "horizon" = 15, "fixedWindow" = FALSE)
-date_ID <- "datetime"
-a <- sysmod(data = example_data, vars = vars, target = target, specify = NULL, validation = validation, optim.method = "nlm", date_ID = date_ID)
+P0_init <- init_perf(data = data, target = target)
+theta_init <- c(P0_init = init_perf(data = example_data, target = "perf"), k1_init = 0.5, k3_init = 0.1, tau1_init = 40, tau2_init = 20, tau3_init = 5)
+lower <- c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1)
+upper <- c(P0_init, 1, 1, 80, 40, 10)
 ```
 
+```{r echo = TRUE}
+model_results <- sysmod(data = example_data,
+       vars = list("input" = example_data$training_load, "time" = example_data$rest),
+       target = "perf", date_ID = "datetime",
+       specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),
+       validation.method = "simple",
+       specs = list("initialWindow" = 0.8, "horizon" = 0.2, "fixedWindow" = FALSE))
+```
+
+```{r echo = FALSE}
+res <- data.frame("RMSE" = model_results[["rmse_vec"]],
+                  "MAE" = model_results[["MAE_vec"]],
+                  "Rsquared" = model_results[["Rsq_vec"]])
+knitr::kable(x = res, format = "simple", digits = 3)
+```
+
+
+
+ + Performance modelling within a time series cross-validation.
+ 
+ 
+
+```{r echo = TRUE, eval=FALSE}
+ model_results_TSCV <- sysmod(data = example_data,
+      vars = list("input" = example_data$training_load, "time" = example_data$rest),
+      target = "perf", date_ID = "datetime",
+      specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),
+      validation.method = "TS-CV",
+      specs = list("initialWindow" = 50, "horizon" = 15, "fixedWindow" = FALSE))
+```
+
+```{r echo = FALSE}
+res_TSCV <- data.frame("RMSE" = mean(model_results_TSCV[["rmse_vec"]]),
+                  "MAE" = mean(model_results_TSCV[["MAE_vec"]]),
+                  "Rsquared" = mean(model_results_TSCV[["Rsq_vec"]]))
+knitr::kable(x = res_TSCV, format = "simple", digits = 3)
+```
 
 
