@@ -231,7 +231,7 @@ RSS <- function(data, theta, target, vars){
 #' @note Model performances (RMSE, MAE and R squared) are calculated on test data for validation = c("simple", "TS-CV").
 #'
 #' @examples
-#' DO NOT RUN : no validation, default optimisation specs.
+#' #' DO NOT RUN : no validation, default optimisation specs.
 #' model_results <- sysmod(data = example_data,
 #'       vars = list("input" = example_data$training_load, "time" = example_data$rest),
 #'       target = "perf", date_ID = "datetime",
@@ -249,12 +249,12 @@ RSS <- function(data, theta, target, vars){
 #'      validation.method = "none")
 #'
 #' DO NOT RUN : simple split example, custom optimisation.
-#'model_results <- sysmod(data = example_data,
-#'      vars = list("input" = example_data$training_load, "time" = example_data$rest),
-#'      target = "perf", date_ID = "datetime",
-#'      specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),
-#'      validation.method = "simple",
-#'      specs = list("initialWindow" = 0.8, "horizon" = 0.2, "fixedWindow" = FALSE))
+#' model_results <- sysmod(data = example_data,
+#'     vars = list("input" = example_data$training_load, "time" = example_data$rest),
+#'     target = "perf", date_ID = "datetime",
+#'     specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),
+#'     validation.method = "simple",
+#'     specs = list("initialWindow" = 0.8, "horizon" = 0.2, "fixedWindow" = FALSE))
 #'
 #' DO NOT RUN : TS-CV example, custom optimisation.
 #'model_results <- sysmod(data = example_data,
@@ -277,6 +277,26 @@ sysmod <-
     require(tidyverse)
     require(optimx)
     require(caret)
+
+    # Verify arguments
+    if (names(vars[1]) != "input" | names(vars[2]) != "time") {
+      stop("vars has to be a list that contains `ìnput` and `time` numerical objects ")
+    }
+    if (is.character(target) == FALSE) {
+      stop("`target` has to be a character")
+    }
+    if (is.character(date_ID) == FALSE) {
+      stop("`date_ID` has to be a character")
+    }
+    if (validation.method != "none" & validation.method != "simple" & validation.method != "TS-CV") {
+      stop("validation.method is mis-specified")
+    }
+    if (names(specify[1]) != "theta_init" | names(specify[2]) != "lower" | names(specify[3]) != "upper" | names(specify[4]) != "optim.method"){
+      stop("specify should be a list that contain `theta_init`, `lower`, `ùpper`, `optim.method` named objects")
+    }
+    if (names(specs[1]) != "initialWindow" | names(specs[2]) != "horizon" | names(specs[3]) != "fixedWindow") {
+      stop("specs should be a list that contain `ìnitialWindow`, `horizon` and `fixedWindow` objects")
+    }
 
     df <-
       data %>% dplyr::slice(-c(which(data[, target] == 0)))   # A reduced data frame that allow to model with no performance days. Used for datetime indexed data frames in Time series CV
@@ -307,13 +327,11 @@ sysmod <-
 
 
 
-
-
     # No validation -----------------------------------------------------------
 
 
     if (validation.method == "none") {
-      # Optimization is initial values and boundaries are provided
+
       if (is.null(specify) == FALSE) {
         res_optim <-
           optimx::optimx(
@@ -340,12 +358,12 @@ sysmod <-
           )
       }
 
-      P0 <- res_optim$P0_init
-      k1 <- res_optim$k1_init
-      k3 <- res_optim$k3_init
-      tau1 <- res_optim$tau1_init
-      tau2 <- res_optim$tau2_init
-      tau3 <- res_optim$tau3_init
+      P0 <- res_optim[[1]]
+      k1 <- res_optim[[2]]
+      k3 <- res_optim[[3]]
+      tau1 <- res_optim[[4]]
+      tau2 <- res_optim[[5]]
+      tau3 <- res_optim[[6]]
 
       theta <- c(
         P0 = P0,
@@ -392,12 +410,15 @@ sysmod <-
         )
 
       # Compute RMSE, MAE and Rsquared on test data
-      rmse_vec <- caret::RMSE(pred = data[which(data[,target] != 0), "predicted"],
-                              obs = data[which(data[,target] != 0), "perf"])
-      MAE_vec <- caret::MAE(pred = data[which(data[,target] != 0), "predicted"],
-                            obs = data[which(data[,target] != 0), "perf"])
-      Rsq_vec <- caret::R2(pred = data[which(data[,target] != 0), "predicted"],
-                           obs = data[which(data[,target] != 0), "perf"])
+      rmse_vec <-
+        caret::RMSE(pred = data[which(data[, target] != 0), "predicted"],
+                    obs = data[which(data[, target] != 0), "perf"])
+      MAE_vec <-
+        caret::MAE(pred = data[which(data[, target] != 0), "predicted"],
+                   obs = data[which(data[, target] != 0), "perf"])
+      Rsq_vec <-
+        caret::R2(pred = data[which(data[, target] != 0), "predicted"],
+                  obs = data[which(data[, target] != 0), "perf"])
 
 
 
@@ -425,8 +446,8 @@ sysmod <-
       )
 
       # split performance dataframe
-      folder_train <- df[unlist(time_slice$train), ]
-      folder_test <- df[unlist(time_slice$test), ]
+      folder_train <- df[unlist(time_slice$train),]
+      folder_test <- df[unlist(time_slice$test),]
 
       # retrieve date information of split
       datetime_train_min <- min(folder_train[, date_ID])
@@ -474,12 +495,12 @@ sysmod <-
           )
       }
 
-      P0 <- res_optim$P0_init
-      k1 <- res_optim$k1_init
-      k3 <- res_optim$k3_init
-      tau1 <- res_optim$tau1_init
-      tau2 <- res_optim$tau2_init
-      tau3 <- res_optim$tau3_init
+      P0 <- res_optim[[1]]
+      k1 <- res_optim[[2]]
+      k3 <- res_optim[[3]]
+      tau1 <- res_optim[[4]]
+      tau2 <- res_optim[[5]]
+      tau3 <- res_optim[[6]]
 
       theta <-
         data.frame(
@@ -565,8 +586,8 @@ sysmod <-
         # Compute the model for each folder. The last folder will return the full model
 
         # split performance dataframe
-        folder_train <- df[unlist(time_slice$train[k]), ]
-        folder_test <- df[unlist(time_slice$test[k]), ]
+        folder_train <- df[unlist(time_slice$train[k]),]
+        folder_test <- df[unlist(time_slice$test[k]),]
 
         # retrieve date information of split
         datetime_train_min <- min(folder_train[, date_ID])
@@ -614,12 +635,12 @@ sysmod <-
             )
         }
 
-        P0 <- res_optim$P0_init
-        k1 <- res_optim$k1_init
-        k3 <- res_optim$k3_init
-        tau1 <- res_optim$tau1_init
-        tau2 <- res_optim$tau2_init
-        tau3 <- res_optim$tau3_init
+        P0 <- res_optim[[1]]
+        k1 <- res_optim[[2]]
+        k3 <- res_optim[[3]]
+        tau1 <- res_optim[[4]]
+        tau2 <- res_optim[[5]]
+        tau3 <- res_optim[[6]]
 
         theta <-
           data.frame(
@@ -688,6 +709,8 @@ sysmod <-
 
 
       } # Close TS-CV
+
+
       return(
         list(
           "dfs" = dfs,
@@ -699,4 +722,21 @@ sysmod <-
       )
     }
   }
+
+
+
+# # test --------------------------------------------------------------------
+#
+# load("./data/example_data.rda")
+# P0_init = init_perf(data = example_data, target = all_of("perf"))
+# theta_init <- c(P0_init = P0_init, k1_init = 0.5, k3_init = 0.1, tau1_init = 40, tau2_init = 20, tau3_init = 5)
+# lower <- c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1)
+# upper <- c(P0_init, 1, 1, 80, 40, 10)
+# model_results <- sysmod(data = example_data,
+#                        vars = list("input" = example_data$training_load, "time" = example_data$rest),
+#                               target = "perf", date_ID = "datetime",
+#                               specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),    # FIX THIS STOP
+#                               validation.method = "simple",
+#                               specs = list("initialWindow" = 0.8, "horizon" = 0.2, "fixedWindow" = FALSE))
+
 

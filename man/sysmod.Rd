@@ -49,7 +49,7 @@ Each of the optimization algorithm with constraints and used by the optimx packa
 Model performances (RMSE, MAE and R squared) are calculated on test data for validation = c("simple", "TS-CV").
 }
 \examples{
-DO NOT RUN : no validation, default optimisation specs.
+#' DO NOT RUN : no validation, default optimisation specs.
 model_results <- sysmod(data = example_data,
       vars = list("input" = example_data$training_load, "time" = example_data$rest),
       target = "perf", date_ID = "datetime",
@@ -68,11 +68,11 @@ model_results <- sysmod(data = example_data,
 
 DO NOT RUN : simple split example, custom optimisation.
 model_results <- sysmod(data = example_data,
-     vars = list("input" = example_data$training_load, "time" = example_data$rest),
-     target = "perf", date_ID = "datetime",
-     specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),
-     validation.method = "simple",
-     specs = list("initialWindow" = 0.8, "horizon" = 0.2, "fixedWindow" = FALSE))
+    vars = list("input" = example_data$training_load, "time" = example_data$rest),
+    target = "perf", date_ID = "datetime",
+    specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),
+    validation.method = "simple",
+    specs = list("initialWindow" = 0.8, "horizon" = 0.2, "fixedWindow" = FALSE))
 
 DO NOT RUN : TS-CV example, custom optimisation.
 model_results <- sysmod(data = example_data,
