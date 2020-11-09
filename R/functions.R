@@ -110,8 +110,6 @@ fatigue_fn <- function(data, k3, tau2, tau3, vars){
 #'@author Frank Imbach <frankimbach@gmail.com>
 #'@export
 init_perf <- function(data, target){
-  require(tidyverse)
-  require(data.table)
 
   return(data %>% dplyr::filter(target != 0) %>%
            data.table::first() %>%
@@ -276,9 +274,7 @@ sysmod <-
            specify = NULL,
            validation.method = "none",
            specs = NULL) {
-    require(tidyverse)
-    require(optimx)
-    require(caret)
+
 
     # Verify arguments
     if (names(vars[1]) != "input" | names(vars[2]) != "time") {
