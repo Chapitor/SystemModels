@@ -7,23 +7,23 @@
 perf_model(data, P0, k1, k3, tau1, tau2, tau3, vars, target)
 }
 \arguments{
-\item{data}{is a data frame object that contains at least training loads, performances and time between two consecutive sessions.}
+\item{data}{A data frame object that contains at least training loads, performances and time between two consecutive sessions.}
 
-\item{P0}{denotes the basic level of performance.}
+\item{P0}{The basic level of performance.}
 
-\item{k1}{denotes the gain term for adaptations response.}
+\item{k1}{The gain term for adaptations response.}
 
-\item{k3}{denotes the gain term for fatigue response.}
+\item{k3}{The gain term for fatigue response.}
 
-\item{tau1}{denotes the time constant of the adaptations exponential decrease.}
+\item{tau1}{The time constant of the adaptations exponential decrease.}
 
-\item{tau2}{denotes the time constant of fatigue exponential decrease.}
+\item{tau2}{The time constant of fatigue exponential decrease.}
 
-\item{tau3}{denotes the time constant of the fatigue remanence exponential decrease.}
+\item{tau3}{The time constant of the fatigue remanence exponential decrease.}
 
-\item{vars}{is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.}
+\item{vars}{A list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.}
 
-\item{target}{is a character vector that indicates the performances column name.}
+\item{target}{A character vector that indicates the performances column name.}
 }
 \value{
 a vector of numerical values

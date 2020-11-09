@@ -23,13 +23,13 @@ sysmod(
 
 \item{date_ID}{A character that indicates the date time object name.}
 
-\item{specify}{default is \code{"NULL"}. Alternatively, a list of \code{"theta_init"} numeric vector that contains initial values for \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3} parameters,
-a numeric vector for lower bounds named \emph{lower}, a numeric vector for upper bounds named \emph{upper} and a character defining the method for optimisation \code{optim.method} has to be specified.
+\item{specify}{Default is \code{"NULL"}. Alternatively, a list of \code{"theta_init"} numeric vector that contains initial values for \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3} parameters,
+a numeric vector for lower bounds named \emph{lower}, a numeric vector for upper bounds named \emph{upper} and a character defining the method for optimization \code{optim.method} has to be specified.
 \emph{PO} denotes the initial level of performance. The first performance can be extracted through the function \link{init_perf}.}
 
-\item{validation.method}{default is \code{"none"}. Alternatively, data splitting or cross-validation can be specified (see details).}
+\item{validation.method}{Default is \code{"none"}. Alternatively, data splitting or cross-validation can be specified (see details).}
 
-\item{specs}{default is \code{"NULL"}. If a validation method is specified, a list that contains splitting arguments has to be specified (see details)}
+\item{specs}{Default is \code{"NULL"}. If a validation method is specified, a list that contains splitting arguments has to be specified (see details)}
 }
 \value{
 A list describing the model output and its performances.
@@ -49,7 +49,7 @@ Each of the optimization algorithm with constraints and used by the optimx packa
 Model performances (RMSE, MAE and R squared) are calculated on test data for validation = c("simple", "TS-CV").
 }
 \examples{
-#' DO NOT RUN : no validation, default optimisation specs.
+#' DO NOT RUN : no validation, default optimization specs.
 model_results <- sysmod(data = example_data,
       vars = list("input" = example_data$training_load, "time" = example_data$rest),
       target = "perf", date_ID = "datetime",
@@ -59,14 +59,14 @@ P0_init = init_perf(data = example_data, target = "perf")
 theta_init <- c(P0_init = P0_init, k1_init = 0.5, k3_init = 0.1, tau1_init = 40, tau2_init = 20, tau3_init = 5)
 lower <- c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1)
 upper <- c(P0_init, 1, 1, 80, 40, 10)
-DO NOT RUN : no validation, custom optimisation.
+DO NOT RUN : no validation, custom optimization.
 model_results <- sysmod(data = example_data,
      vars = list("input" = example_data$training_load, "time" = example_data$rest),
      target = "perf", date_ID = "datetime",
      specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),
      validation.method = "none")
 
-DO NOT RUN : simple split example, custom optimisation.
+DO NOT RUN : simple split example, custom optimization.
 model_results <- sysmod(data = example_data,
     vars = list("input" = example_data$training_load, "time" = example_data$rest),
     target = "perf", date_ID = "datetime",
@@ -74,7 +74,7 @@ model_results <- sysmod(data = example_data,
     validation.method = "simple",
     specs = list("initialWindow" = 0.8, "horizon" = 0.2, "fixedWindow" = FALSE))
 
-DO NOT RUN : TS-CV example, custom optimisation.
+DO NOT RUN : TS-CV example, custom optimization.
 model_results <- sysmod(data = example_data,
      vars = list("input" = example_data$training_load, "time" = example_data$rest),
      target = "perf", date_ID = "datetime",

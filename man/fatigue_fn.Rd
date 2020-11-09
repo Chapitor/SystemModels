@@ -7,15 +7,15 @@
 fatigue_fn(data, k3, tau2, tau3, vars)
 }
 \arguments{
-\item{data}{is a data frame object that contains at least training loads, performances and time between two consecutive sessions.}
+\item{data}{A data frame object that contains at least training loads, performances and time between two consecutive sessions.}
 
-\item{k3}{denotes the gain term for fatigue occurrences.}
+\item{k3}{The gain term for fatigue occurrences.}
 
-\item{tau2}{denotes the time constant of fatigue exponential decrease.}
+\item{tau2}{The time constant of fatigue exponential decrease.}
 
-\item{tau3}{denotes the time constant of the fatigue remanence exponential decrease.}
+\item{tau3}{The time constant of the fatigue remanence exponential decrease.}
 
-\item{vars}{is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.}
+\item{vars}{A list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.}
 }
 \value{
 a vector of numerical values

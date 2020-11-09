@@ -7,9 +7,9 @@
 init_perf(data, target)
 }
 \arguments{
-\item{data}{is a data frame object that contains at least training loads, performances and time between two consecutive sessions.}
+\item{data}{A data frame object that contains at least training loads, performances and time between two consecutive sessions.}
 
-\item{target}{is a character that indicates the performances column name.}
+\item{target}{A character that indicates the performances column name.}
 }
 \value{
 a numerical value

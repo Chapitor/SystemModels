@@ -8,10 +8,10 @@
 
 #' @title  Adaptations response modeling
 #' @description To model adaptation induced by each training session.
-#' @param data is a data frame object that contains at least training loads, performances and time between two consecutive sessions.
-#' @param k1 denotes the gain term for adaptation occurrences.
-#' @param tau1 denotes the time constant of the adaptations exponential decrease.
-#' @param vars is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
+#' @param data A data frame object that contains at least training loads, performances and time between two consecutive sessions.
+#' @param k1 The gain term for adaptation occurrences.
+#' @param tau1 The time constant of the adaptations exponential decrease.
+#' @param vars A list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
 #'
 #' @return a vector of numerical values
 #'
@@ -39,10 +39,10 @@ adaptation_fn <- function(data, k1, tau1, vars){
 
 #' @title Variation in the fatiguing effects.
 #' @description To make the fatigue impulse response varying over time in accordance with system input.
-#' @param data is a data frame object that contains at least training loads, performances and time between two consecutive sessions.
-#' @param k3 denotes the gain term for fatigue occurrences.
-#' @param tau3 denotes the time constant of the fatigue remanence exponential decrease.
-#' @param vars is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
+#' @param data A data frame object that contains at least training loads, performances and time between two consecutive sessions.
+#' @param k3 The gain term for fatigue occurrences.
+#' @param tau3 The time constant of the fatigue remanence exponential decrease.
+#' @param vars A list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
 #'
 #' @return a vector of numerical values
 #'
@@ -69,11 +69,11 @@ k2i_fn <- function(data, k3, tau3, vars){
 
 #' @title Fatigue response modeling.
 #' @description To calculate the variable fatigue component for each training input.
-#' @param data is a data frame object that contains at least training loads, performances and time between two consecutive sessions.
-#' @param k3 denotes the gain term for fatigue occurrences.
-#' @param tau2 denotes the time constant of fatigue exponential decrease.
-#' @param tau3 denotes the time constant of the fatigue remanence exponential decrease.
-#' @param vars is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
+#' @param data A data frame object that contains at least training loads, performances and time between two consecutive sessions.
+#' @param k3 The gain term for fatigue occurrences.
+#' @param tau2 The time constant of fatigue exponential decrease.
+#' @param tau3 The time constant of the fatigue remanence exponential decrease.
+#' @param vars A list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
 #'
 #' @return a vector of numerical values
 #'
@@ -99,8 +99,8 @@ fatigue_fn <- function(data, k3, tau2, tau3, vars){
 
 #' @title Initial performance
 #' @description This function extracts the first performance of a time ordered data frame object.
-#' @param data is a data frame object that contains at least training loads, performances and time between two consecutive sessions.
-#' @param target is a character that indicates the performances column name.
+#' @param data A data frame object that contains at least training loads, performances and time between two consecutive sessions.
+#' @param target A character that indicates the performances column name.
 #'
 #' @return a numerical value
 #'
@@ -122,8 +122,8 @@ init_perf <- function(data, target){
 
 #' @title Extract observations
 #' @description This function extracts known performances from a data frame object.
-#' @param data is a data frame object that contains at least training loads, performances and time between two consecutive sessions.
-#' @param target is a character vector that indicates the performances column name.
+#' @param data A data frame object that contains at least training loads, performances and time between two consecutive sessions.
+#' @param target A character vector that indicates the performances column name.
 #'
 #' @return a vector of numerical values
 #'
@@ -142,15 +142,15 @@ real_perf <- function(data, target){
 
 #' @title Variable dose-response modeling
 #' @description The function models the performance according to Busso Variable dose-response model \(Busso, 2003\) and based on previously defined parameters.
-#' @param data is a data frame object that contains at least training loads, performances and time between two consecutive sessions.
-#' @param P0 denotes the basic level of performance.
-#' @param k1 denotes the gain term for adaptations response.
-#' @param k3 denotes the gain term for fatigue response.
-#' @param tau1 denotes the time constant of the adaptations exponential decrease.
-#' @param tau2 denotes the time constant of fatigue exponential decrease.
-#' @param tau3 denotes the time constant of the fatigue remanence exponential decrease.
-#' @param vars is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
-#' @param target is a character vector that indicates the performances column name.
+#' @param data A data frame object that contains at least training loads, performances and time between two consecutive sessions.
+#' @param P0 The basic level of performance.
+#' @param k1 The gain term for adaptations response.
+#' @param k3 The gain term for fatigue response.
+#' @param tau1 The time constant of the adaptations exponential decrease.
+#' @param tau2 The time constant of fatigue exponential decrease.
+#' @param tau3 The time constant of the fatigue remanence exponential decrease.
+#' @param vars A list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
+#' @param target A character vector that indicates the performances column name.
 #'
 #' @return a vector of numerical values
 #'
@@ -180,10 +180,10 @@ perf_model <- function(data, P0, k1, k3, tau1, tau2, tau3, vars, target){
 
 #' @title Residual sum of squares.
 #' @description This function calculates the residual sum of squares from observations and predicted performances.
-#' @param data is a data frame object that contains at least training loads, performances and time between two consecutive sessions.
-#' @param theta is a vector of parameters \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3}.
-#' @param target is a character that indicates the performance column name.
-#' @param vars is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
+#' @param data A data frame object that contains at least training loads, performances and time between two consecutive sessions.
+#' @param theta A vector of parameters \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3}.
+#' @param target A character that indicates the performance column name.
+#' @param vars A list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
 #'
 #' @return a numerical value
 #'
@@ -213,11 +213,11 @@ RSS <- function(data, theta, target, vars){
 #' @param vars A list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
 #' @param target A character that indicates the performances column name.
 #' @param date_ID A character that indicates the date time object name.
-#' @param specify default is \code{"NULL"}. Alternatively, a list of \code{"theta_init"} numeric vector that contains initial values for \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3} parameters,
-#'  a numeric vector for lower bounds named \emph{lower}, a numeric vector for upper bounds named \emph{upper} and a character defining the method for optimisation \code{optim.method} has to be specified.
+#' @param specify Default is \code{"NULL"}. Alternatively, a list of \code{"theta_init"} numeric vector that contains initial values for \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3} parameters,
+#'  a numeric vector for lower bounds named \emph{lower}, a numeric vector for upper bounds named \emph{upper} and a character defining the method for optimization \code{optim.method} has to be specified.
 #'   \emph{PO} denotes the initial level of performance. The first performance can be extracted through the function [init_perf].
-#' @param validation.method default is \code{"none"}. Alternatively, data splitting or cross-validation can be specified (see details).
-#' @param specs default is \code{"NULL"}. If a validation method is specified, a list that contains splitting arguments has to be specified (see details)
+#' @param validation.method Default is \code{"none"}. Alternatively, data splitting or cross-validation can be specified (see details).
+#' @param specs Default is \code{"NULL"}. If a validation method is specified, a list that contains splitting arguments has to be specified (see details)
 #'
 #' @details \emph{validation.method} can be used to learn model and evaluate within a cross-validation procedure. Methods available are \code{"none"}, \code{"simple"} and \code{"TS-CV"}
 #'  for no validation, a simple data split into training / testing sets and time-series cross-validation respectively.
@@ -231,7 +231,7 @@ RSS <- function(data, theta, target, vars){
 #' @note Model performances (RMSE, MAE and R squared) are calculated on test data for validation = c("simple", "TS-CV").
 #'
 #' @examples
-#' #' DO NOT RUN : no validation, default optimisation specs.
+#' #' DO NOT RUN : no validation, default optimization specs.
 #' model_results <- sysmod(data = example_data,
 #'       vars = list("input" = example_data$training_load, "time" = example_data$rest),
 #'       target = "perf", date_ID = "datetime",
@@ -241,14 +241,14 @@ RSS <- function(data, theta, target, vars){
 #' theta_init <- c(P0_init = P0_init, k1_init = 0.5, k3_init = 0.1, tau1_init = 40, tau2_init = 20, tau3_init = 5)
 #' lower <- c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1)
 #' upper <- c(P0_init, 1, 1, 80, 40, 10)
-#' DO NOT RUN : no validation, custom optimisation.
+#' DO NOT RUN : no validation, custom optimization.
 #'model_results <- sysmod(data = example_data,
 #'      vars = list("input" = example_data$training_load, "time" = example_data$rest),
 #'      target = "perf", date_ID = "datetime",
 #'      specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),
 #'      validation.method = "none")
 #'
-#' DO NOT RUN : simple split example, custom optimisation.
+#' DO NOT RUN : simple split example, custom optimization.
 #' model_results <- sysmod(data = example_data,
 #'     vars = list("input" = example_data$training_load, "time" = example_data$rest),
 #'     target = "perf", date_ID = "datetime",
@@ -256,7 +256,7 @@ RSS <- function(data, theta, target, vars){
 #'     validation.method = "simple",
 #'     specs = list("initialWindow" = 0.8, "horizon" = 0.2, "fixedWindow" = FALSE))
 #'
-#' DO NOT RUN : TS-CV example, custom optimisation.
+#' DO NOT RUN : TS-CV example, custom optimization.
 #'model_results <- sysmod(data = example_data,
 #'      vars = list("input" = example_data$training_load, "time" = example_data$rest),
 #'      target = "perf", date_ID = "datetime",
