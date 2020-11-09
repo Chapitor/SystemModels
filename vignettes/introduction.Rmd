@@ -202,7 +202,7 @@ knitr::kable(x = res, format = "simple", digits = 3)
  
  
 
-```{r echo = TRUE, eval=FALSE}
+```{r echo = TRUE}
  model_results_TSCV <- sysmod(data = example_data,
       vars = list("input" = example_data$training_load, "time" = example_data$rest),
       target = "perf", date_ID = "datetime",

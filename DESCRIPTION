@@ -18,11 +18,14 @@ Imports:
     optimx, 
     caret, 
     lubridate,
-    data.table
+    data.table,
+    Rdpack
 Suggests: 
     knitr,
     rmarkdown,
     testthat
+RdMacros:
+    Rdpack
 VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)

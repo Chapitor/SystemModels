@@ -208,14 +208,14 @@ RSS <- function(data, theta, target, vars){
 
 
 #' @title Dose-response modeling
-#' @description This function trains a dose-response model with or without validation procedure. The model is defined as following :
-#' @param data is a data frame object that contains at least training loads, performances and time between two consecutive sessions.
-#' @param vars is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
-#' @param target is a character that indicates the performances column name.
-#' @param date_ID is a character that indicates the date time object name.
+#' @description This function trains a dose-response model \insertCite{busso2003variable}{sysmod} with or without validation procedure. The model is defined as following :
+#' @param data A data frame object that contains at least training loads, performances and time between two consecutive sessions.
+#' @param vars A list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.
+#' @param target A character that indicates the performances column name.
+#' @param date_ID A character that indicates the date time object name.
 #' @param specify default is \code{"NULL"}. Alternatively, a list of \code{"theta_init"} numeric vector that contains initial values for \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3} parameters,
 #'  a numeric vector for lower bounds named \emph{lower}, a numeric vector for upper bounds named \emph{upper} and a character defining the method for optimisation \code{optim.method} has to be specified.
-#'   \emph{PO} is the initial level of performance and can be extracted through the function [init_perf].
+#'   \emph{PO} denotes the initial level of performance. The first performance can be extracted through the function [init_perf].
 #' @param validation.method default is \code{"none"}. Alternatively, data splitting or cross-validation can be specified (see details).
 #' @param specs default is \code{"NULL"}. If a validation method is specified, a list that contains splitting arguments has to be specified (see details)
 #'
@@ -265,6 +265,8 @@ RSS <- function(data, theta, target, vars){
 #'      specs = list("initialWindow" = 50, "horizon" = 15, "fixedWindow" = FALSE))
 #'
 #'@author Frank Imbach <frankimbach@gmail.com>
+#'@references
+#'\insertAllCited{}
 #'@export
 sysmod <-
   function(data,
@@ -298,8 +300,12 @@ sysmod <-
       stop("specs should be a list that contain `ìnitialWindow`, `horizon` and `fixedWindow` objects")
     }
 
-    df <-
-      data %>% dplyr::slice(-c(which(data[, target] == 0)))   # A reduced data frame that allow to model with no performance days. Used for datetime indexed data frames in Time series CV
+    if(is.na(which(data[, target] == 0)[1]) == FALSE) {
+      df <-
+        data %>% dplyr::slice(-c(which(data[, target] == 0)))   # A reduced data frame that allow to model with no performance days. Used for datetime indexed data frames in Time series CV
+    } else {
+      df <- data
+    }
 
     # Initiate and optimize parameters
     if (is.null(specify) == FALSE) {
@@ -440,10 +446,10 @@ sysmod <-
     if (validation.method == "simple") {
       time_slice <- caret::createTimeSlices(
         y = df[, target],
-        initialWindow = specs[["initialWindow"]] * nrow(df),
-        horizon = specs[["horizon"]] * nrow(df),
+        initialWindow = round(specs[["initialWindow"]] * nrow(df)),
+        horizon = round(specs[["horizon"]] * nrow(df)),
         fixedWindow = specs[["fixedWindow"]]
-      )
+        )
 
       # split performance dataframe
       folder_train <- df[unlist(time_slice$train),]
@@ -725,8 +731,8 @@ sysmod <-
 
 
 
-# # test --------------------------------------------------------------------
-#
+# test --------------------------------------------------------------------
+
 # load("./data/example_data.rda")
 # P0_init = init_perf(data = example_data, target = all_of("perf"))
 # theta_init <- c(P0_init = P0_init, k1_init = 0.5, k3_init = 0.1, tau1_init = 40, tau2_init = 20, tau3_init = 5)
@@ -735,8 +741,10 @@ sysmod <-
 # model_results <- sysmod(data = example_data,
 #                        vars = list("input" = example_data$training_load, "time" = example_data$rest),
 #                               target = "perf", date_ID = "datetime",
-#                               specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),    # FIX THIS STOP
+#                               specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),
 #                               validation.method = "simple",
 #                               specs = list("initialWindow" = 0.8, "horizon" = 0.2, "fixedWindow" = FALSE))
+
+
 
 

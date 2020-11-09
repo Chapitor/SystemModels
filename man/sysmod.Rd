@@ -15,17 +15,17 @@ sysmod(
 )
 }
 \arguments{
-\item{data}{is a data frame object that contains at least training loads, performances and time between two consecutive sessions.}
+\item{data}{A data frame object that contains at least training loads, performances and time between two consecutive sessions.}
 
-\item{vars}{is a list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.}
+\item{vars}{A list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.}
 
-\item{target}{is a character that indicates the performances column name.}
+\item{target}{A character that indicates the performances column name.}
 
-\item{date_ID}{is a character that indicates the date time object name.}
+\item{date_ID}{A character that indicates the date time object name.}
 
 \item{specify}{default is \code{"NULL"}. Alternatively, a list of \code{"theta_init"} numeric vector that contains initial values for \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3} parameters,
 a numeric vector for lower bounds named \emph{lower}, a numeric vector for upper bounds named \emph{upper} and a character defining the method for optimisation \code{optim.method} has to be specified.
-\emph{PO} is the initial level of performance and can be extracted through the function \link{init_perf}.}
+\emph{PO} denotes the initial level of performance. The first performance can be extracted through the function \link{init_perf}.}
 
 \item{validation.method}{default is \code{"none"}. Alternatively, data splitting or cross-validation can be specified (see details).}
 
@@ -35,7 +35,7 @@ a numeric vector for lower bounds named \emph{lower}, a numeric vector for upper
 A list describing the model output and its performances.
 }
 \description{
-This function trains a dose-response model with or without validation procedure. The model is defined as following :
+This function trains a dose-response model \insertCite{busso2003variable}{sysmod} with or without validation procedure. The model is defined as following :
 }
 \details{
 \emph{validation.method} can be used to learn model and evaluate within a cross-validation procedure. Methods available are \code{"none"}, \code{"simple"} and \code{"TS-CV"}
@@ -82,6 +82,9 @@ model_results <- sysmod(data = example_data,
      validation.method = "TS-CV",
      specs = list("initialWindow" = 50, "horizon" = 15, "fixedWindow" = FALSE))
 
+}
+\references{
+\insertAllCited{}
 }
 \author{
 Frank Imbach \href{mailto:frankimbach@gmail.com}{frankimbach@gmail.com}
