@@ -17,17 +17,17 @@ sysmod(
 \arguments{
 \item{data}{A data frame object that contains at least training loads, performances and time between two consecutive sessions.}
 
-\item{vars}{A list that contains \emph{input} (i.e. session training loads) and \emph{time} (i.e. the time between two consecutive inputs) numerical vectors.}
+\item{vars}{A list that contains \emph{input} (i.e. session training loads, numeric) and \emph{time} (i.e. the time between two consecutive inputs) vectors.}
 
 \item{target}{A character that indicates the performances column name.}
 
 \item{date_ID}{A character that indicates the date time object name.}
 
-\item{specify}{Default is \code{"NULL"}. Alternatively, a list of \code{"theta_init"} numeric vector that contains initial values for \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3} parameters,
-a numeric vector for lower bounds named \emph{lower}, a numeric vector for upper bounds named \emph{upper} and a character defining the method for optimization \code{optim.method} has to be specified.
-\emph{PO} denotes the initial level of performance. The first performance can be extracted through the function \link{init_perf}.}
+\item{specify}{Default is \code{"NULL"}. Alternatively, a list that contains \code{"theta_init"} numeric vector that contains initial values for \emph{P0}, \emph{k1}, \emph{k3}, \emph{tau1}, \emph{tau2}, \emph{tau3} parameters,
+a numeric vector for lower and upper bounds named \code{"lower"} and \code{"upper"} respectively, a character defining the method used for parameter optimization \code{"optim.method"} (see details).
+Hence, \emph{PO} denotes the initial level of performance. The first performance can be extracted through the function \link{init_perf}.}
 
-\item{validation.method}{Default is \code{"none"}. Alternatively, data splitting or cross-validation can be specified (see details).}
+\item{validation.method}{Default is \code{"none"}. Alternatively, simple data splitting or cross-validation can be specified (see details).}
 
 \item{specs}{Default is \code{"NULL"}. If a validation method is specified, a list that contains splitting arguments has to be specified (see details)}
 }
@@ -35,18 +35,18 @@ a numeric vector for lower bounds named \emph{lower}, a numeric vector for upper
 A list describing the model output and its performances.
 }
 \description{
-This function trains a dose-response model \insertCite{busso2003variable}{sysmod} with or without validation procedure. The model is defined as following :
+This function trains a dose-response model \insertCite{busso2003variable}{sysmod} with or without validation procedure.
 }
 \details{
-\emph{validation.method} can be used to learn model and evaluate within a cross-validation procedure. Methods available are \code{"none"}, \code{"simple"} and \code{"TS-CV"}
+\emph{validation.method} can be used to train and evaluate model within a cross-validation procedure. Methods available are \code{"none"}, \code{"simple"} and \code{"TS-CV"}
 for no validation, a simple data split into training / testing sets and time-series cross-validation respectively.
-For the \code{"simple"} method, specify decimals as the proportion of the data to be used for model training in \code{"initialWindow"}, the proportion of data used for model evaluation in
+\emph{specs} lets define data splitting specifications. For the \code{"simple"} method, specify decimals as the proportion of the data to be used for model training in \code{"initialWindow"}, the proportion of data used for model evaluation in
 \code{"horizon"} and logical term for the \code{"fixedWindow"} within a list.
 For the \code{"TS-CV"} method, specify numeric values for \code{"initialWindow"}, \code{"horizon"} and logical term for the \code{"fixedWindow"} within a list.
-Each of the optimization algorithm with constraints and used by the optimx package can be specified in optim.method.
+Each of the optimization algorithm with constraints and used by \link[optimx]{optimx} can be used in \code{"optim.method"}.
 }
 \note{
-Model performances (RMSE, MAE and R squared) are calculated on test data for validation = c("simple", "TS-CV").
+Model performances (RMSE, MAE and R squared) are calculated on data used for validation = c("simple", "TS-CV").
 }
 \examples{
 #' DO NOT RUN : no validation, default optimization specs.
