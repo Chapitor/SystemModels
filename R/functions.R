@@ -111,9 +111,9 @@ fatigue_fn <- function(data, k3, tau2, tau3, vars){
 #'@export
 init_perf <- function(data, target){
 
-  return(data %>% dplyr::filter(target != 0) %>%
+  return(data %>% dplyr::filter(all_of(target) != 0) %>%
            data.table::first() %>%
-           dplyr::select(target) %>%
+           dplyr::select(all_of(target)) %>%
            as.numeric())
 }
 
@@ -728,8 +728,9 @@ sysmod <-
 
 
 # test --------------------------------------------------------------------
-
-# load("./data/example_data.rda")
+library(tidyverse)
+load("./data/example_data.rda")
+target <- "perf"
 # P0_init = init_perf(data = example_data, target = all_of("perf"))
 # theta_init <- c(P0_init = P0_init, k1_init = 0.5, k3_init = 0.1, tau1_init = 40, tau2_init = 20, tau3_init = 5)
 # lower <- c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1)

@@ -1,10 +1,8 @@
 ---
 title: "sysmod R package"
 target: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{comment-utiliser-mon-package}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+vignette: |
+  %\VignetteIndexEntry{comment-utiliser-mon-package} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
@@ -28,10 +26,11 @@ example_data <- data.frame("training_load" = c(rnorm(100, mean = 1000, sd = 150)
                            "rest" = c(rnorm(100, mean= 2, sd=1),
                                       rep(1,50)),
                            "perf" = c(seq(from = 10, to = 30, length.out = 100),
-                                      rep(0,50)),
+                                      rep(0,50)) * rnorm(150, 1, 0.05),
                            "datetime" = seq(ISOdate(2020, 1, 1), by = "day", length.out = 150))
 ```
-
+A simulated data set with 150 observations, including training sessions, rest days and performances is used for the purpose of functions presentation. A gaussian noise is applied to the simulated performances.
+Initial values of gain and time constants are settled according to the values found in the litterature.
 
 ```{r echo=TRUE}
 data <- example_data
@@ -115,9 +114,9 @@ Eq. :
 $$\hat{p}^n = p^{*} + k_1 \: \sum_{i=1}^{n-1} w_i \: e^{\frac{-(n-i)}{\tau1}} \: - \: \sum_{i=1}^{n-1} k^{i}_2 \: w_i \cdot e^{\frac{-(n-i)}{\tau_2}}$$ 
 ```{r echo= FALSE}
 init_perf <- function(data, target){
-  return(data %>% dplyr::filter(target != 0) %>%
+  return(data %>% dplyr::filter(all_of(target) != 0) %>%
            data.table::first() %>%
-           dplyr::select(target) %>%
+           dplyr::select(all_of(target)) %>%
            as.numeric())
 }
 ```
@@ -169,9 +168,9 @@ RSS <- function(theta, data, target, vars){
 
 ### Main function
 
-The associated functions being presented, we can model the performance according to the variable dose-response model.
+These functions being presented, we can model the performance according to the variable dose-response model (Busso, 2003).
 
- + Performance modelling within a simple 80 / 20 data split for model validation
+#### Performance modelling within a simple 80 / 20 data split for model validation
  
 ```{r echo = TRUE}
 P0_init <- init_perf(data = data, target = target)
@@ -198,7 +197,7 @@ knitr::kable(x = res, format = "simple", digits = 3)
 
 
 
- + Performance modelling within a time series cross-validation.
+#### Performance modelling within a time series cross-validation.
  
  
 
@@ -218,4 +217,53 @@ res_TSCV <- data.frame("RMSE" = mean(model_results_TSCV[["rmse_vec"]]),
 knitr::kable(x = res_TSCV, format = "simple", digits = 3)
 ```
 
+```{r echo=FALSE}
+rmse_train <- c(model_results_TSCV$dfs %>%
+  filter(base == "train") %>%
+  group_by(folder) %>%
+  summarise(rmse = caret::RMSE(pred = predicted, obs= perf)) %>%
+  dplyr::select(rmse)) %>%
+  unlist() %>% as.numeric()
 
+rmse_test <- c(model_results_TSCV$dfs %>%
+  filter(base == "test") %>%
+  group_by(folder) %>%
+  summarise(rmse = caret::RMSE(pred = predicted, obs= perf)) %>%
+  dplyr::select(rmse)) %>%
+  unlist() %>% as.numeric()
+
+
+df_boxplot <- data.frame(rmse_train = rmse_train, 
+                         rmse_test = rmse_test) %>%
+  pivot_longer(cols = c("rmse_train", "rmse_test"), names_to = "base") %>%
+  mutate(base = as.factor(base))
+df_boxplot$base <- factor(df_boxplot$base, levels = c("rmse_train", "rmse_test"))
+
+
+ggplot(df_boxplot, mapping = aes(x = base, y = value, colour = base)) +
+  geom_boxplot() +
+  scale_colour_discrete(name = "Distributions") +
+  ylab("RMSE") +
+  theme_classic()
+```
+
+
+```{r echo = FALSE}
+df_to_plot2 <- model_results_TSCV$dfs %>% filter(folder == max(folder)) %>%
+  mutate("model" = "model")
+
+ggplot(data=df_to_plot2, mapping = aes(x = datetime, y = perf, colour = base)) +
+  geom_point() +
+  scale_colour_manual(name = "data",
+                      breaks = c("train", "test"),
+                      values = c("black", "red"))+
+  geom_line(data=df_to_plot2, aes(x = datetime, y = predicted, linetype = as.factor(model)), col = "red")+
+  scale_linetype_discrete(name = "")+
+  xlab(label = "date")+
+  ylab(label = "performance")+
+  theme_classic()
+```
+
+# References
+
+Busso, T.  Variable dose-response relationship between exercise training and performance. *Med. Sci. Sports Exerc.* **35**,1188–1195 (2003).
