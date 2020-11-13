@@ -229,7 +229,7 @@ RSS <- function(data, theta, target, vars){
 #' @note Model performances (RMSE, MAE and R squared) are calculated on data used for validation = c("simple", "TS-CV").
 #'
 #' @examples
-#' #' DO NOT RUN : no validation, default optimization specs.
+#' \dontrun{No validation, default optimization specs.}
 #' model_results <- sysmod(data = example_data,
 #'       vars = list("input" = example_data$training_load, "time" = example_data$rest),
 #'       target = "perf", date_ID = "datetime",
@@ -239,14 +239,15 @@ RSS <- function(data, theta, target, vars){
 #' theta_init <- c(P0_init = P0_init, k1_init = 0.5, k3_init = 0.1, tau1_init = 40, tau2_init = 20, tau3_init = 5)
 #' lower <- c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1)
 #' upper <- c(P0_init, 1, 1, 80, 40, 10)
-#' DO NOT RUN : no validation, custom optimization.
+#'
+#' \dontrun{No validation, custom optimization.}
 #'model_results <- sysmod(data = example_data,
 #'      vars = list("input" = example_data$training_load, "time" = example_data$rest),
 #'      target = "perf", date_ID = "datetime",
 #'      specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),
 #'      validation.method = "none")
 #'
-#' DO NOT RUN : simple split example, custom optimization.
+#' \dontrun{Simple split example, custom optimization.}
 #' model_results <- sysmod(data = example_data,
 #'     vars = list("input" = example_data$training_load, "time" = example_data$rest),
 #'     target = "perf", date_ID = "datetime",
@@ -254,7 +255,7 @@ RSS <- function(data, theta, target, vars){
 #'     validation.method = "simple",
 #'     specs = list("initialWindow" = 0.8, "horizon" = 0.2, "fixedWindow" = FALSE))
 #'
-#' DO NOT RUN : TS-CV example, custom optimization.
+#' \dontrun{TS-CV example, custom optimization.}
 #'model_results <- sysmod(data = example_data,
 #'      vars = list("input" = example_data$training_load, "time" = example_data$rest),
 #'      target = "perf", date_ID = "datetime",

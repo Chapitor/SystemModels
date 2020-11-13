@@ -1,8 +1,10 @@
 ---
-title: "sysmod R package"
+title: "sysmod"
 target: rmarkdown::html_vignette
-vignette: |
-  %\VignetteIndexEntry{comment-utiliser-mon-package} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
+vignette: >
+  %\VignetteIndexEntry{sysmod} 
+  %\VignetteEngine{knitr::rmarkdown} 
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
