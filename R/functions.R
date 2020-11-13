@@ -1,11 +1,3 @@
-# rm(list = ls())
-# library(usethis)
-# library(devtools)
-# library(roxygen2)
-
-# Initiate an example data frame
-# load("./data/example_data.rda")
-
 #' @title  Adaptations response modeling
 #' @description To model adaptation induced by each training session.
 #' @param data A data frame object that contains at least training loads, performances and time between two consecutive sessions.
@@ -725,24 +717,5 @@ sysmod <-
       )
     }
   }
-
-
-
-# test --------------------------------------------------------------------
-library(tidyverse)
-load("./data/example_data.rda")
-target <- "perf"
-# P0_init = init_perf(data = example_data, target = all_of("perf"))
-# theta_init <- c(P0_init = P0_init, k1_init = 0.5, k3_init = 0.1, tau1_init = 40, tau2_init = 20, tau3_init = 5)
-# lower <- c(P0_init - 0.10 * P0_init, 0, 0, 10, 1, 1)
-# upper <- c(P0_init, 1, 1, 80, 40, 10)
-# model_results <- sysmod(data = example_data,
-#                        vars = list("input" = example_data$training_load, "time" = example_data$rest),
-#                               target = "perf", date_ID = "datetime",
-#                               specify = list("theta_init" = theta_init, "lower" = lower, "upper" = upper, "optim.method" = "nlm"),
-#                               validation.method = "simple",
-#                               specs = list("initialWindow" = 0.8, "horizon" = 0.2, "fixedWindow" = FALSE))
-
-
 
 
