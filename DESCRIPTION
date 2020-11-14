@@ -1,5 +1,5 @@
 Package: sysmod
-Title: System model package for sport performance modelling (One Line, Title Case)
+Title: System model package for sport performance modelling
 Version: 1.0
 Authors@R: 
     person(given = "Frank",
@@ -7,7 +7,7 @@ Authors@R:
            role = c("aut", "cre"),
            email = "frankimbach@gmail.com",
            comment = c(ORCID = "0000-0001-8175-8515"))
-Description: This package helps user to model performances from training load input, according to the known dose-response models.
+Description: This package helps user to model performances from training sessions, according to impulse dose-response models.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
