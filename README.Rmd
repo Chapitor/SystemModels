@@ -10,7 +10,8 @@ output: html_document
 devtools::install_github(repo = "fimbach/sysmod", build_vignettes = TRUE)
 
 
-## Vignettes
+## Example
 
-A small example of the "sysmod" package is available at : 
-browseVignettes(package = "sysmod")
+A small example of the "sysmod" package is available here:
+"sysmod/docs/articles/introduction.html"
+
