@@ -1,7 +1,7 @@
 
 
 # Install
-```
+```R
 devtools::install_github(repo = "fimbach/sysmod", build_vignettes = TRUE)
 ```
 
